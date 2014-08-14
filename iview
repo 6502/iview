@@ -18,7 +18,6 @@ class Viewer(QW):
 
         self.setFocusPolicy(Qt.StrongFocus)
         self.setFocus()
-        self.pan = False
         self.imglist = imglist[:]
         self.setMouseTracking(True)
         self.fullscreen = False
@@ -26,6 +25,8 @@ class Viewer(QW):
         self.connect(self.timer, SIGNAL("timeout()"), self.checkmtime)
         self.timer.start(250)
         self.pos = None
+        self.tracking = None
+        self.tools = []
         self.load(0)
 
     def load(self, index):
@@ -53,6 +54,10 @@ class Viewer(QW):
         self.update()
 
     def keyPressEvent(self, e):
+        for t in self.tools:
+            if t.key(e):
+                self.update()
+                return
         if e.key() == Qt.Key_Right:
             w, h = self.img.width(), self.img.height()
             self.load(1)
@@ -91,6 +96,16 @@ class Viewer(QW):
             self.img = img
             self.zoomAll()
             gc.collect()
+        elif e.key() == Qt.Key_C:
+            self.tools = [CropTool(self)]
+            self.update()
+        elif e.key() == Qt.Key_S:
+            fname = str(QFileDialog.getSaveFileName(self, "Save image as", self.imglist[0]))
+            if fname != "":
+                self.img.save(fname)
+                if fname not in self.imglist:
+                    self.imglist.insert(0, fname)
+                    self.load(0)
         self.update()
 
     def sizeHint(self):
@@ -146,6 +161,12 @@ class Viewer(QW):
                 self.scaled = [self.scale, simg]
             dc.drawImage(self.tx, self.ty, self.scaled[1])
 
+        y = 16
+        dc.setFont(QFont("sans-serif", 11))
+
+        for t in self.tools:
+            t.draw(dc)
+
         if self.img.isNull():
             name = self.imglist[0] + " (unable to load as image)"
         else:
@@ -156,8 +177,7 @@ class Viewer(QW):
                 self.img.height() * self.img.bytesPerLine() / (1024.0*1024.0))
         if "/" in name:
             name = name[name.rindex("/")+1:]
-        y = 16
-        dc.setFont(QFont("sans-serif", 11))
+
         dc.setPen(QPen(QColor(64, 64, 64)))
         dc.drawText(5, y-1, name)
         dc.drawText(5, y+1, name)
@@ -167,24 +187,111 @@ class Viewer(QW):
         dc.drawText(6, y, name)
 
     def mousePressEvent(self, e):
-        if e.button():
-            self.pan = True
-            self.px = e.x()
-            self.py = e.y()
-
-    def mouseMoveEvent(self, e):
-        if self.pan:
-            self.tx += e.x() - self.px
-            self.ty += e.y() - self.py
-            self.px = e.x()
-            self.py = e.y()
-            self.update()
         self.pos = ((e.x() - self.tx) / self.scale,
                     (e.y() - self.ty) / self.scale)
+        for t in self.tools:
+            self.tracking = t.hit(e.x(), e.y(), e.button)
+            if self.tracking:
+                break
+        else:
+            cur = [e.x(), e.y()]
+            def pan(mx, my):
+                if mx is not None:
+                    self.tx += mx - cur[0]
+                    self.ty += my - cur[1]
+                    cur[0] = mx
+                    cur[1] = my
+            self.tracking = pan
+
+    def mouseMoveEvent(self, e):
+        self.pos = ((e.x() - self.tx) / self.scale,
+                    (e.y() - self.ty) / self.scale)
+        if self.tracking:
+            self.tracking(e.x(), e.y())
+            self.update()
 
     def mouseReleaseEvent(self, e):
-        if self.pan:
-            self.pan = False
+        if self.tracking:
+            self.tracking(None, None)
+            self.tracking = None
+
+    def map(self, x, y):
+        return self.tx + x*self.scale, self.ty + y*self.scale
+
+    def revmap(self, x, y):
+        return (x - self.tx)/self.scale, (y - self.ty)/self.scale
+
+class CropTool(object):
+    def __init__(self, iview):
+        self.iview = iview
+        self.geo = [iview.img.width()//4, iview.img.height()//4,
+                    iview.img.width()*3//4, iview.img.height()*3//4]
+
+    def draw(self, dc):
+        x0, y0, x1, y1 = self.geo
+        x0, y0 = self.iview.map(self.geo[0], self.geo[1])
+        x1, y1 = self.iview.map(self.geo[2], self.geo[3])
+        dc.setBrush(QBrush())
+        dc.setPen(QPen(QColor(0, 0, 0), 4))
+        dc.drawRect(QRectF(x0, y0, x1-x0, y1-y0))
+        dc.setPen(QPen(QColor(255, 255, 255), 2, Qt.DashLine))
+        dc.drawRect(QRectF(x0, y0, x1-x0, y1-y0))
+        dc.setPen(QPen(QColor(0, 0, 0)))
+        dc.setBrush(QColor(255, 0, 0))
+        for x, y in ((x0, y0), (x1, y0), (x0, y1), (x1, y1)):
+            dc.drawEllipse(QRectF(x-4, y-4, 8, 8))
+        tx = "Cropping rect (%i, %i) - (%i, %i) = %i x %i" % (self.geo[0], self.geo[1],
+                                                              self.geo[2], self.geo[3],
+                                                              abs(self.geo[2]-self.geo[0]),
+                                                              abs(self.geo[3]-self.geo[1]))
+        dc.setPen(QPen(QColor(0, 0, 0)))
+        dc.drawText(4, 40, tx )
+        dc.drawText(7, 40, tx )
+        dc.drawText(5, 39, tx )
+        dc.drawText(5, 41, tx )
+        dc.setPen(QPen(QColor(0, 255, 0)))
+        dc.drawText(5, 40, tx )
+
+    def hit(self, mx, my, button):
+        x0, y0, x1, y1 = self.geo
+        x0, y0 = self.iview.map(self.geo[0], self.geo[1])
+        x1, y1 = self.iview.map(self.geo[2], self.geo[3])
+        f = 0
+        if x0 - 8 <= mx <= x0 + 8: f |= 1
+        if y0 - 8 <= my <= y0 + 8: f |= 2
+        if x1 - 8 <= mx <= x1 + 8: f |= 4
+        if y1 - 8 <= my <= y1 + 8: f |= 8
+        if (f & 5) == 5: f ^= 4
+        if (f & 10) == 10: f ^= 8
+
+        if f:
+            def tracking(x, y):
+                if x is not None:
+                    x, y = map(int, self.iview.revmap(x, y))
+                    if f & 1: self.geo[0] = max(0, min(self.iview.img.width(), x))
+                    if f & 2: self.geo[1] = max(0, min(self.iview.img.height(), y))
+                    if f & 4: self.geo[2] = max(0, min(self.iview.img.width(), x))
+                    if f & 8: self.geo[3] = max(0, min(self.iview.img.height(), y))
+            return tracking
+
+    def key(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.iview.tools.remove(self)
+            return True
+        elif e.key() == Qt.Key_Return:
+            x0, y0, x1, y1 = self.geo
+            if x0 > x1: x0, x1 = x1, x0
+            if y0 > y1: y0, y1 = y1, y0
+            x0 = max(0, x0)
+            y0 = max(0, y0)
+            x1 = min(self.iview.img.width(), x1)
+            y1 = min(self.iview.img.height(), y1)
+            if x0 < x1 and y0 < y1:
+                self.iview.img = self.iview.img.copy(x0, y0, x1-x0, y1-y0)
+                self.iview.scaled = None
+                self.iview.tools.remove(self)
+                self.iview.zoomAll()
+                return True
 
 class MyDialog(QDialog):
     def __init__(self, parent, imglist):
