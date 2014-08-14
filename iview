@@ -131,8 +131,7 @@ class Viewer(QW):
         w, h = self.width(), self.height()
         dc.fillRect(0, 0, w, h, QBrush(QColor(64, 64, 64)))
 
-        iw, ih = int(self.img.width()*self.scale), int(self.img.height()*self.scale)
-        dc.fillRect(self.tx, self.ty, iw, ih, self.bbrush)
+        dc.fillRect(self.tx+1, self.ty+1, self.img.width()*self.scale-2, self.img.height()*self.scale-2, self.bbrush)
         if self.scale > 1:
             dc.save()
             dc.translate(self.tx, self.ty)
