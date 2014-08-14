@@ -207,12 +207,13 @@ def smartSort(s):
 
 app = QApplication([])
 filelist = sys.argv[1:]
-if len(filelist) == 1 and "." in filelist[0]:
-    ext = filelist[0][filelist[0].rindex("."):]
+if len(filelist) == 1:
     slash = filelist[0].rindex("/") if "/" in filelist[0] else -1
     fl = []
+    supported_extensions = [str(x).lower() for x in QImageReader.supportedImageFormats()]
+    fre = re.compile("^.*\\.(" + "|".join(supported_extensions) + ")$")
     for f in os.listdir(filelist[0][:slash+1] + "."):
-        if f[-len(ext):] == ext:
+        if fre.match(f):
             fl.append(filelist[0][:slash+1] + f)
     fl.sort(key = smartSort)
     if filelist[0] in fl:

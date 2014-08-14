@@ -10,9 +10,8 @@ single python file.
 Usage
 =====
 Calling iview requires specifying one or more image file names.
-When a single file is specified the list of all files with the
-same extension in the same directory is used as image list for
-prev/next.
+When a single file is specified the list of all files with a known
+extension in the same directory is used as image list for prev/next.
 
 Key bindings
 ============
@@ -33,5 +32,10 @@ Features
   an animation)
 - Updating the image on disk updates the view (live display)
 - Zoom is centered on mouse position
-- Supports most image formats (anything QImage accepts)
 - Transparency support
+- Supports most image formats (anything QImage accepts).
+  On my system the list of known extensions is:
+  bmp, bw, bw, dds, eps, eps, epsf, epsf, epsi, epsi, exr, exr,
+  gif, ico, jp2, jpeg, jpg, mng, pbm, pcx, pcx, pgm, pic, png,
+  ppm, psd, psd, ras, ras, rgb, rgb, rgba, rgba, sgi, sgi, svg,
+  svgz, tga, tga, tif, tiff, xbm, xcf, xcf, xpm, xv.
