@@ -199,7 +199,7 @@ class Viewer(QW):
         self.pos = ((e.x() - self.tx) / self.scale,
                     (e.y() - self.ty) / self.scale)
         for t in self.tools:
-            self.tracking = t.hit(e.x(), e.y(), e.button)
+            self.tracking = t.hit(e.x(), e.y(), e.button())
             if self.tracking:
                 break
         else:
@@ -238,8 +238,18 @@ class CropTool(object):
 
     def draw(self, dc):
         x0, y0, x1, y1 = self.geo
-        x0, y0 = self.iview.map(self.geo[0], self.geo[1])
-        x1, y1 = self.iview.map(self.geo[2], self.geo[3])
+        x0, y0 = map(int, self.iview.map(self.geo[0], self.geo[1]))
+        x1, y1 = map(int, self.iview.map(self.geo[2], self.geo[3]))
+        if x0 > x1: x0, x1 = x1, x0
+        if y0 > y1: y0, y1 = y1, y0
+
+        dark = QBrush(QColor(0, 0, 0, 128))
+        w, h = self.iview.width(), self.iview.height()
+        if y0 > 0: dc.fillRect(0, 0, w, y0, dark)
+        if x0 > 0: dc.fillRect(0, y0, x0, y1-y0, dark)
+        if x1 < w: dc.fillRect(x1, y0, w-x1, y1-y0, dark)
+        if y1 < h: dc.fillRect(0, y1, w, h-y1, dark)
+
         dc.setBrush(QBrush())
         dc.setPen(QPen(QColor(0, 0, 0), 4))
         dc.drawRect(QRectF(x0, y0, x1-x0, y1-y0))
@@ -262,32 +272,43 @@ class CropTool(object):
         dc.drawText(5, 40, tx )
 
     def hit(self, mx, my, button):
-        x0, y0, x1, y1 = self.geo
-        x0, y0 = self.iview.map(self.geo[0], self.geo[1])
-        x1, y1 = self.iview.map(self.geo[2], self.geo[3])
-        f = 0
-        if x0 - 8 <= mx <= x0 + 8: f |= 1
-        if y0 - 8 <= my <= y0 + 8: f |= 2
-        if x1 - 8 <= mx <= x1 + 8: f |= 4
-        if y1 - 8 <= my <= y1 + 8: f |= 8
-        if (f & 5) == 5: f ^= 4
-        if (f & 10) == 10: f ^= 8
+        if button == Qt.LeftButton:
+            x0, y0, x1, y1 = self.geo
+            x0, y0 = self.iview.map(self.geo[0], self.geo[1])
+            x1, y1 = self.iview.map(self.geo[2], self.geo[3])
+            f = 0
+            if x0 - 8 <= mx <= x0 + 8: f |= 1
+            if y0 - 8 <= my <= y0 + 8: f |= 2
+            if x1 - 8 <= mx <= x1 + 8: f |= 4
+            if y1 - 8 <= my <= y1 + 8: f |= 8
+            if f == 0 and (mx-x0)*(mx-x1)<0 and (my-y0)*(my-y1)<0:
+                f = 15
+            else:
+                if (f & 5) == 5: f ^= 4
+                if (f & 10) == 10: f ^= 8
 
-        if f:
-            def tracking(x, y):
-                if x is not None:
-                    x, y = map(int, self.iview.revmap(x, y))
-                    if f & 1: self.geo[0] = max(0, min(self.iview.img.width(), x))
-                    if f & 2: self.geo[1] = max(0, min(self.iview.img.height(), y))
-                    if f & 4: self.geo[2] = max(0, min(self.iview.img.width(), x))
-                    if f & 8: self.geo[3] = max(0, min(self.iview.img.height(), y))
-            return tracking
+            if f:
+                cur = map(int, self.iview.revmap(mx, my))
+                def tracking(x, y):
+                    if x is not None:
+                        x, y = map(int, self.iview.revmap(x, y))
+                        dx, dy = x - cur[0], y - cur[1]
+                        cur[0], cur[1] = x, y
+                        if f & 1: self.geo[0] += dx
+                        if f & 2: self.geo[1] += dy
+                        if f & 4: self.geo[2] += dx
+                        if f & 8: self.geo[3] += dy
+                        self.geo[0] = max(0, min(self.geo[0], self.iview.img.width()))
+                        self.geo[1] = max(0, min(self.geo[1], self.iview.img.height()))
+                        self.geo[2] = max(0, min(self.geo[2], self.iview.img.width()))
+                        self.geo[3] = max(0, min(self.geo[3], self.iview.img.height()))
+                return tracking
 
     def key(self, e):
         if e.key() == Qt.Key_Escape:
             self.iview.tools.remove(self)
             return True
-        elif e.key() == Qt.Key_Return:
+        elif e.key() in (Qt.Key_Return, Qt.Key_C):
             x0, y0, x1, y1 = self.geo
             if x0 > x1: x0, x1 = x1, x0
             if y0 > y1: y0, y1 = y1, y0
