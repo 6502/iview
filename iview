@@ -263,6 +263,9 @@ class Tool(object):
             Tool.pen = (e.key() - Qt.Key_1)*2
             self.iview.update()
             return True
+        if e.key() == Qt.Key_Escape:
+            self.iview.tools.remove(self)
+            return True
 
     def text(self, dc, msg):
         dc.setPen(QPen(QColor(0, 0, 0)))
@@ -335,13 +338,6 @@ class RectTool(Tool):
                         self.geo[3] = max(0, min(self.geo[3], self.iview.img.height()))
                 return tracking
 
-    def key(self, e):
-        if e.key() == Qt.Key_Escape:
-            self.iview.tools.remove(self)
-            return True
-        else:
-            return Tool.key(self, e)
-
 class CropTool(RectTool):
     def __init__(self, iview):
         RectTool.__init__(self, iview)
@@ -375,7 +371,7 @@ class CropTool(RectTool):
             self.iview.zoomAll()
             return True
         else:
-            return RectTool.key(self, e)
+            return Tool.key(self, e)
 
 class EllipseTool(RectTool):
     def __init__(self, iview):
@@ -411,7 +407,7 @@ class EllipseTool(RectTool):
             self.iview.tools.remove(self)
             return True
         else:
-            return RectTool.key(self, e)
+            return Tool.key(self, e)
 
 class ArrowTool(Tool):
     k = 8
@@ -471,8 +467,7 @@ class ArrowTool(Tool):
             self.iview.scaled = None
             self.iview.tools.remove(self)
             return True
-        else:
-            return Tool.key(self, e)
+        return Tool.key(self, e)
 
 class MyDialog(QDialog):
     def __init__(self, parent, imglist):
