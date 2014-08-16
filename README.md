@@ -17,12 +17,15 @@ Key bindings
 ============
 - Left arrow : previous file
 - Right arrow : next file
-- "R" : Rotate image
-- "C" : Crop image
-- "S" : Save image as
 - "1", "2", "3", "4" : Sets exact 1/1, 2/1, 3/1 or 4/1 pixel scaling
 - "0", Home : Zoom image to fit view
 - "F" : Fullscreen on/off
+- "R" : Rotate image
+- "E" : Ellipse markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
+- "A" : Arrow markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
+- "C" : Crop image
+- "S" : Save image as
+- "U" : Undo unsaved changes (rotation/crop/markup)
 
 Mouse drag does panning, mouse wheel does zooming.
 
@@ -35,7 +38,8 @@ Features
 - Updating the image on disk updates the view (live display)
 - Zoom is centered on mouse position
 - Transparency support
-- Rotation, cropping and format conversion with "save as..."
+- Rotation, cropping, simple markup and format conversion
+  with "save as..."
 - Supports most image formats (anything QImage accepts).
   On my system the list of known extensions is:
   bmp, bw, bw, dds, eps, eps, epsf, epsf, epsi, epsi, exr, exr,
