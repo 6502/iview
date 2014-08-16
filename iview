@@ -34,6 +34,7 @@ class Viewer(QW):
         self.img = QImage(self.imglist[0])
         self.scaled = None
         self.imgmtime = os.stat(self.imglist[0]).st_mtime
+        self.setTitle()
         self.update()
         gc.collect()
 
@@ -176,6 +177,7 @@ class Viewer(QW):
         for t in self.tools:
             t.draw(dc)
 
+    def setTitle(self):
         if self.img.isNull():
             name = self.imglist[0] + " (unable to load as image)"
         else:
@@ -186,14 +188,7 @@ class Viewer(QW):
                 self.img.height() * self.img.bytesPerLine() / (1024.0*1024.0))
         if "/" in name:
             name = name[name.rindex("/")+1:]
-
-        dc.setPen(QPen(QColor(64, 64, 64)))
-        dc.drawText(5, y-1, name)
-        dc.drawText(5, y+1, name)
-        dc.drawText(7, y, name)
-        dc.drawText(7, y, name)
-        dc.setPen(QPen(QColor(255,255,255)))
-        dc.drawText(6, y, name)
+        self.parent().setWindowTitle(name)
 
     def mousePressEvent(self, e):
         self.pos = ((e.x() - self.tx) / self.scale,
@@ -264,12 +259,12 @@ class CropTool(object):
                                                               abs(self.geo[2]-self.geo[0]),
                                                               abs(self.geo[3]-self.geo[1]))
         dc.setPen(QPen(QColor(0, 0, 0)))
-        dc.drawText(4, 40, tx )
-        dc.drawText(7, 40, tx )
-        dc.drawText(5, 39, tx )
-        dc.drawText(5, 41, tx )
+        dc.drawText(4, 20, tx )
+        dc.drawText(7, 20, tx )
+        dc.drawText(5, 19, tx )
+        dc.drawText(5, 21, tx )
         dc.setPen(QPen(QColor(0, 255, 0)))
-        dc.drawText(5, 40, tx )
+        dc.drawText(5, 20, tx )
 
     def hit(self, mx, my, button):
         if button == Qt.LeftButton:
