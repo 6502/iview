@@ -3,18 +3,18 @@ iview
 A quick and simple image viewer for Linux, based on Python and Qt
 
 Requirements
-============
+------------
 Running iview requires Qt and PyQt installed. iview program is a
 single python file.
 
 Usage
-=====
+-----
 Calling iview requires specifying one or more image file names.
 When a single file is specified the list of all files with a known
 extension in the same directory is used as image list for prev/next.
 
 Key bindings
-============
+------------
 - Left arrow : previous file
 - Right arrow : next file
 - "1", "2", "3", "4" : Sets exact 1/1, 2/1, 3/1 or 4/1 pixel scaling
@@ -30,7 +30,7 @@ Key bindings
 Mouse drag does panning, mouse wheel does zooming.
 
 Features
-========
+--------
 - Smooth scaling when zooming out, hard scaling when zooming in
 - When changing to next/prev picture the view is not changed if
   picture size is the same (allows looking at several images as
