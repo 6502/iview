@@ -236,6 +236,12 @@ class Viewer(QW):
     def revmap(self, x, y):
         return (x - self.tx)/self.scale, (y - self.ty)/self.scale
 
+    def to32bpp(self):
+        if self.img.format() != QImage.Format_ARGB32:
+            self.img = self.img.convertToFormat(QImage.Format_ARGB32)
+            self.scaled = None
+            self.update()
+
 class Tool(object):
     pen = 4
     color = 0
@@ -398,6 +404,7 @@ class EllipseTool(RectTool):
             x0, y0 = max(0, x0), max(0, y0)
             x1, y1 = min(self.iview.img.width(), x1), min(self.iview.img.height(), y1)
             if x0 < x1 and y0 < y1:
+                self.iview.to32bpp()
                 dc = QPainter(self.iview.img)
                 dc.setPen(QPen(self.colors[self.color], self.pen))
                 dc.setBrush(QBrush())
@@ -453,6 +460,7 @@ class ArrowTool(Tool):
         if e.key() == Qt.Key_Plus:
             if ArrowTool.k > 4: ArrowTool.k -= 1
         if e.key() in (Qt.Key_Enter, Qt.Key_A):
+            self.iview.to32bpp()
             x0, y0, x1, y1 = map(int, self.pts)
             dx, dy = (x1 - x0)//self.k, (y1 - y0)//self.k
             nx, ny = (y1 - y0)//self.k//2, (x0 - x1)//self.k//2
