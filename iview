@@ -134,6 +134,9 @@ class Viewer(QW):
         elif e.key() == Qt.Key_A:
             self.tools = [ArrowTool(self)]
             self.update()
+        elif e.key() == Qt.Key_T:
+            self.tools = [TextTool(self)]
+            self.update()
         elif e.key() == Qt.Key_S:
             fname = str(QFileDialog.getSaveFileName(self, "Save image as", self.imglist[0]))
             if fname != "":
@@ -387,7 +390,7 @@ class CropTool(RectTool):
                        abs(self.geo[3]-self.geo[1])))
 
     def key(self, e):
-        if e.key() in (Qt.Key_Enter, Qt.Key_C):
+        if e.key() in (Qt.Key_Return, Qt.Key_C):
             x0, y0, x1, y1 = self.geo
             if x0 > x1: x0, x1 = x1, x0
             if y0 > y1: y0, y1 = y1, y0
@@ -420,7 +423,7 @@ class EllipseTool(RectTool):
         self.text(dc, "Ellipse drawing mode: 1-9=thickness, r/g/b=color")
 
     def key(self, e):
-        if e.key() in (Qt.Key_Enter, Qt.Key_E):
+        if e.key() in (Qt.Key_Return, Qt.Key_E):
             x0, y0, x1, y1 = self.geo
             if x0 > x1: x0, x1 = x1, x0
             if y0 > y1: y0, y1 = y1, y0
@@ -482,7 +485,7 @@ class ArrowTool(Tool):
             if ArrowTool.k < 100: ArrowTool.k += 1
         if e.key() == Qt.Key_Plus:
             if ArrowTool.k > 4: ArrowTool.k -= 1
-        if e.key() in (Qt.Key_Enter, Qt.Key_A):
+        if e.key() in (Qt.Key_Return, Qt.Key_A):
             self.iview.to32bpp()
             x0, y0, x1, y1 = map(int, self.pts)
             dx, dy = (x1 - x0)//self.k, (y1 - y0)//self.k
@@ -497,6 +500,57 @@ class ArrowTool(Tool):
             dc = None
             self.iview.scaled = None
             self.iview.tools.remove(self)
+            return True
+        return Tool.key(self, e)
+
+class TextTool(Tool):
+    def __init__(self, iview):
+        Tool.__init__(self, iview)
+        self.text = ""
+        self.pos = [self.iview.img.width()//2, self.iview.img.height()//2]
+
+    def draw(self, dc):
+        x, y = self.pos
+        dc.save()
+        dc.translate(self.iview.tx, self.iview.ty)
+        dc.scale(self.iview.scale, self.iview.scale)
+        dc.setFont(QFont("sans-serif", (11 + self.pen*8)))
+        dc.setPen(QPen(self.colors[self.color]))
+        dc.drawText(x, y, self.text + "|")
+        dc.restore()
+        Tool.text(self, dc, "Text tool: ctrl-1...9=Font size, ctrl-R/G/B color, ENTER=Accept")
+
+    def hit(self, mx, my, button):
+        if button == Qt.LeftButton:
+            cur = map(int, self.iview.revmap(mx, my))
+            def tracking(mx, my):
+                if mx is not None:
+                    x, y = map(int, self.iview.revmap(mx, my))
+                    self.pos[0] += x - cur[0]
+                    self.pos[1] += y - cur[1]
+                    cur[0] = x
+                    cur[1] = y
+            return tracking
+
+    def key(self, e):
+        if e.key() == Qt.Key_Backspace:
+            self.text = self.text[:-1]
+            return True
+        elif e.key() == Qt.Key_Escape:
+            return Tool.key(self, e)
+        elif e.key() == Qt.Key_Return:
+            self.iview.to32bpp()
+            x, y = self.pos
+            dc = QPainter(self.iview.img)
+            dc.setFont(QFont("sans-serif", (11 + self.pen*8)))
+            dc.setPen(QPen(self.colors[self.color]))
+            dc.drawText(x, y, self.text)
+            dc = None
+            self.iview.scaled = None
+            self.iview.tools.remove(self)
+            return True
+        elif e.text() and e.modifiers() != Qt.ControlModifier:
+            self.text += unicode(e.text())
             return True
         return Tool.key(self, e)
 

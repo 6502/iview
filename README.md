@@ -23,6 +23,7 @@ Key bindings
 - "R" : Rotate image
 - "E" : Ellipse markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
 - "A" : Arrow markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
+- "T" : Text markup mode (ctrl-"1".."9" font size, ctrl-"R"/"G"/"B" color)
 - "C" : Crop image
 - "S" : Save image as
 - "U" : Undo unsaved changes (rotation/crop/markup)
