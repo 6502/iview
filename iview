@@ -346,7 +346,7 @@ class RectTool(Tool):
                 if (f & 5) == 5: f ^= 4
                 if (f & 10) == 10: f ^= 8
             if f == 0:
-                xx, yy = self.iview.revmap(mx, my)
+                xx, yy = map(int, self.iview.revmap(mx, my))
                 self.geo = [xx, yy, xx, yy]
                 f = 4+8
 
