@@ -277,6 +277,8 @@ class Tool(object):
 
     def __init__(self, iview):
         self.iview = iview
+        self.font = QFont("sans-serif")
+        self.font.setPixelSize(self.pen * 8 + 11)
 
     def key(self, e):
         if e.key() == Qt.Key_R:
@@ -293,6 +295,7 @@ class Tool(object):
             return True
         if e.key() >= Qt.Key_1 and e.key() <= Qt.Key_9:
             Tool.pen = (e.key() - Qt.Key_1)*2
+            self.font.setPixelSize(self.pen * 8 + 11)
             self.iview.update()
             return True
         if e.key() == Qt.Key_Escape:
@@ -518,7 +521,7 @@ class TextTool(Tool):
         dc.save()
         dc.translate(self.iview.tx, self.iview.ty)
         dc.scale(self.iview.scale, self.iview.scale)
-        dc.setFont(QFont("sans-serif", (11 + self.pen*8)))
+        dc.setFont(self.font)
         dc.setPen(QPen(self.colors[self.color]))
         caret = (int(time.time() * 2) - self.blink) & 1
         dc.drawText(x, y, self.text + "|" if caret else self.text)
@@ -549,7 +552,7 @@ class TextTool(Tool):
             self.iview.to32bpp()
             x, y = self.pos
             dc = QPainter(self.iview.img)
-            dc.setFont(QFont("sans-serif", (11 + self.pen*8)))
+            dc.setFont(self.font)
             dc.setPen(QPen(self.colors[self.color]))
             dc.drawText(x, y, self.text)
             dc = None
