@@ -507,7 +507,11 @@ class TextTool(Tool):
     def __init__(self, iview):
         Tool.__init__(self, iview)
         self.text = ""
-        self.pos = [self.iview.img.width()//2, self.iview.img.height()//2]
+        x0, y0 = map(int, self.iview.revmap(0, 0))
+        x1, y1 = map(int, self.iview.revmap(self.iview.width(), self.iview.height()))
+        self.pos = [(x0 + x1)//2, (y0 + y1)//2]
+        self.blink = int(time.time() * 2) + 1
+        QTimer.singleShot(250, lambda : self.iview.update())
 
     def draw(self, dc):
         x, y = self.pos
@@ -516,9 +520,11 @@ class TextTool(Tool):
         dc.scale(self.iview.scale, self.iview.scale)
         dc.setFont(QFont("sans-serif", (11 + self.pen*8)))
         dc.setPen(QPen(self.colors[self.color]))
-        dc.drawText(x, y, self.text + "|")
+        caret = (int(time.time() * 2) - self.blink) & 1
+        dc.drawText(x, y, self.text + "|" if caret else self.text)
         dc.restore()
         Tool.text(self, dc, "Text tool: ctrl-1...9=Font size, ctrl-R/G/B color, ENTER=Accept")
+        QTimer.singleShot(250, lambda : self.iview.update())
 
     def hit(self, mx, my, button):
         if button == Qt.LeftButton:
@@ -533,6 +539,7 @@ class TextTool(Tool):
             return tracking
 
     def key(self, e):
+        self.blink = int(time.time() * 2) + 1
         if e.key() == Qt.Key_Backspace:
             self.text = self.text[:-1]
             return True
