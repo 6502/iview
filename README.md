@@ -24,6 +24,7 @@ Key bindings
 - "E" : Ellipse markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
 - "A" : Arrow markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
 - "T" : Text markup mode (ctrl-"1".."9" font size, ctrl-"R"/"G"/"B" color)
+- "M" : Measuring mode
 - "C" : Crop image
 - "S" : Save image as
 - "U" : Undo unsaved changes (rotation/crop/markup)
@@ -38,7 +39,7 @@ Features
   an animation)
 - Updating the image on disk updates the view (live display)
 - Zoom is centered on mouse position
-- Transparency support
+- Transparency support, measuring mode
 - Rotation, cropping, simple markup and format conversion
   with "save as..."
 - Supports most image formats (anything QImage accepts).
