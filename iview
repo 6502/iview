@@ -534,7 +534,7 @@ class MeasuringTool(Tool):
         dx, dy = x1 - x0, y1 - y0
         L = (dx**2 + dy**2)**0.5
         angle = 0 if L == 0 else math.atan2(dy, dx)*180/math.pi
-        self.text(dc, "Measuring mode: (%i,%i)-(%i,%i) : %ix%i = %0.3fmm px, %0.3f degrees" % (
+        self.text(dc, "Measuring mode: (%i,%i)-(%i,%i) : %ix%i = %0.3fpx, %0.3f degrees" % (
                 x0, y0, x1, y1, dx, dy, L, angle))
 
     def hit(self, mx, my, button):
