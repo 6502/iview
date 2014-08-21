@@ -553,6 +553,12 @@ class MeasuringTool(Tool):
             def tracking(x, y):
                 if x is not None:
                     self.pts[i:i+2] = map(int, self.iview.revmap(x, y))
+                    if app.keyboardModifiers() == Qt.ShiftModifier:
+                        if (abs(self.pts[i] - self.pts[0+2-i]) <
+                            abs(self.pts[i+1] - self.pts[1+3-(i+1)])):
+                            self.pts[i] = self.pts[0+2-i]
+                        else:
+                            self.pts[i+1] = self.pts[1+3-(i+1)]
             return tracking
 
     def key(self, e):
