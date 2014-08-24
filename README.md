@@ -24,6 +24,7 @@ Key bindings
 - "E" : Ellipse markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
 - "A" : Arrow markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
 - "T" : Text markup mode (ctrl-"1".."9" font size, ctrl-"R"/"G"/"B" color)
+- "Y" : Grayscale conversion (simply keeps green channel only)
 - "M" : Measuring mode
 - "C" : Crop image
 - "S" : Save image as
@@ -48,3 +49,4 @@ Features
   gif, ico, jp2, jpeg, jpg, mng, pbm, pcx, pcx, pgm, pic, png,
   ppm, psd, psd, ras, ras, rgb, rgb, rgba, rgba, sgi, sgi, svg,
   svgz, tga, tga, tif, tiff, xbm, xcf, xcf, xpm, xv.
+- PGM file writing (strangely unsupported by QImage)

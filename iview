@@ -143,6 +143,15 @@ class Viewer(QW):
         elif e.key() == Qt.Key_M:
             self.tools = [MeasuringTool(self)]
             self.update()
+        elif e.key() == Qt.Key_Y:
+            self.to32bpp()
+            b = self.img.bits()
+            b.setsize(self.img.height() * self.img.bytesPerLine())
+            b.setwriteable(True)
+            for i in xrange(0, self.img.height()*self.img.bytesPerLine(), 4):
+                b[i] = b[i+2] = b[i+1]
+            self.scaled = None
+            self.update()
         elif e.key() == Qt.Key_T:
             self.tools = [TextTool(self)]
             self.update()
@@ -156,6 +165,22 @@ class Viewer(QW):
                             self.imglist.insert(0, fname)
                             self.load(0)
                     else:
+                        QMessageBox.critical(self, "IView: Error saving image file",
+                                             "There was a problem saving the image file.")
+                elif fname[-4:] == ".pgm":
+                    # Hand-made PGM writer
+                    try:
+                        self.to32bpp()
+                        data = self.img.bits().asstring(self.img.height() * self.img.bytesPerLine())
+                        f = open(fname, "wb")
+                        f.write("P5\n%i %i 255\n" % (self.img.width(), self.img.height()))
+                        for y in xrange(self.img.height()):
+                            f.write(data[y*self.img.width()*4+1:(y+1)*self.img.width()*4+1:4])
+                        f.close()
+                        if fname not in self.imglist:
+                            self.imglist.insert(0, fname)
+                            self.load(0)
+                    except Exception:
                         QMessageBox.critical(self, "IView: Error saving image file",
                                              "There was a problem saving the image file.")
                 else:
