@@ -27,6 +27,12 @@ from PyQt4.Qt import *
 
 QW = QWidget
 
+def between(x, a, b, eps=0):
+    return min(a, b)-eps <= x <= max(a, b)+eps
+
+def near(x, a, eps):
+    return a-eps <= x <= a+eps
+
 class Viewer(QW):
     def __init__(self, parent, imglist):
         QW.__init__(self, parent)
@@ -342,14 +348,14 @@ class RectTool(Tool):
     def hit(self, mx, my, button):
         if button == Qt.LeftButton:
             x0, y0, x1, y1 = self.geo
-            x0, y0 = self.iview.map(self.geo[0], self.geo[1])
-            x1, y1 = self.iview.map(self.geo[2], self.geo[3])
+            x0, y0 = map(int, self.iview.map(self.geo[0], self.geo[1]))
+            x1, y1 = map(int, self.iview.map(self.geo[2], self.geo[3]))
             f = 0
-            if x0 - 8 <= mx <= x0 + 8 and (my - y0)*(my - y1)<0: f |= 1
-            if y0 - 8 <= my <= y0 + 8 and (mx - x0)*(mx - x1)<0: f |= 2
-            if x1 - 8 <= mx <= x1 + 8 and (my - y0)*(my - y1)<0: f |= 4
-            if y1 - 8 <= my <= y1 + 8 and (mx - x0)*(mx - x1)<0: f |= 8
-            if f == 0 and (mx-x0)*(mx-x1)<0 and (my-y0)*(my-y1)<0:
+            if near(mx, x0, 8) and between(my, y0, y1, 8): f |= 1
+            if near(my, y0, 8) and between(mx, x0, x1, 8): f |= 2
+            if near(mx, x1, 8) and between(my, y0, y1, 8): f |= 4
+            if near(my, y1, 8) and between(mx, x0, x1, 8): f |= 8
+            if f == 0 and between(mx, x0, x1) and between(my, y0, y1):
                 f = 15
             else:
                 if (f & 5) == 5: f ^= 4
