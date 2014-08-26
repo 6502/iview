@@ -15,6 +15,7 @@ extension in the same directory is used as image list for prev/next.
 
 Key bindings
 ------------
+- "F1" : Help on key bindings
 - Left arrow : previous file
 - Right arrow : next file
 - "1", "2", "3", "4" : Sets exact 1/1, 2/1, 3/1 or 4/1 pixel scaling
@@ -50,3 +51,5 @@ Features
   ppm, psd, psd, ras, ras, rgb, rgb, rgba, rgba, sgi, sgi, svg,
   svgz, tga, tga, tif, tiff, xbm, xcf, xcf, xpm, xv.
 - PGM file writing (strangely unsupported by QImage)
+- Running with --screenshot [filename] takes a full desktop
+  screenshot and opens it
