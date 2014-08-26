@@ -183,11 +183,22 @@ class Viewer(QW):
                                          ", ".join(supported_extensions))
         elif e.key() == Qt.Key_X:
             subprocess.Popen([os.getenv("EDITOR"), __file__])
+        elif e.key() == Qt.Key_F2:
+            s, result = QInputDialog.getText(self, "Rename image", "New filename", QLineEdit.Normal, self.imglist[0])
+            if result:
+                try:
+                    os.rename(self.imglist[0], unicode(s))
+                    self.imglist[0] = unicode(s)
+                    self.load(0)
+                except Exception:
+                    QMessageBox.critical(self, "IView: Unable to rename the file",
+                                         "There was a problem renaming the file")
         elif e.key() == Qt.Key_F1:
             QMessageBox.information(self, "IView",
                                     "<center><h1>IView</h1>A simple image viewer<br>"
                                     "by Andrea \"6502\" Griffini</center>"
                                     "<ul>"
+                                    "  <li> <b>F1</b> This help message</li>"
                                     "  <li> <b>Mouse drag</b> Pan</li>"
                                     "  <li> <b>Mouse wheel</b> Zoom</li>"
                                     "  <li> <b>Left/Right</b> Previous/next image</li>"
@@ -202,6 +213,7 @@ class Viewer(QW):
                                     "  <li> <b>R</b> Rotate image 90 degrees</li>"
                                     "  <li> <b>U</b> Reload original image</li>"
                                     "  <li> <b>S</b> Save modified image</li>"
+                                    "  <li> <b>F2</b> Rename current file</li>"
                                     "  <li> <b>X</b> Customize</li>"
                                     "</ul>")
         self.update()

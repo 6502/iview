@@ -30,6 +30,7 @@ Key bindings
 - "C" : Crop image
 - "S" : Save image as
 - "U" : Undo unsaved changes (rotation/crop/markup)
+- "F2" : Rename current file
 
 Mouse drag does panning, mouse wheel does zooming.
 
