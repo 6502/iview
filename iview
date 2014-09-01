@@ -70,7 +70,11 @@ class Viewer(QW):
     def checkmtime(self):
         imgmtime = os.stat(self.imglist[0]).st_mtime
         if imgmtime != self.imgmtime:
+            ow = self.img.width()
+            oh = self.img.height()
             self.load(0)
+            if self.img.width() != ow or self.img.height() != oh:
+                self.zoomAll()
 
     def resizeEvent(self, e):
         self.zoomAll()
