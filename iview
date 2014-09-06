@@ -188,9 +188,33 @@ class Viewer(QW):
         elif e.key() == Qt.Key_X:
             subprocess.Popen([os.getenv("EDITOR"), __file__])
         elif e.key() == Qt.Key_F2:
-            s, result = QInputDialog.getText(self, "Rename image", "New filename", QLineEdit.Normal, self.imglist[0])
-            if result:
+            name = self.imglist[0]
+            d = QDialog(self)
+            d.setWindowTitle("Rename image")
+            vb = QVBoxLayout(d)
+            l = QLabel("New name"); vb.addWidget(l)
+            sle = QLineEdit(d); vb.addWidget(sle)
+            hb = QHBoxLayout(); vb.addLayout(hb);
+            hb.addWidget(QWidget(d))
+            ok = QPushButton("OK", d); hb.addWidget(ok)
+            ok.setFixedWidth(80)
+            cancel = QPushButton("Cancel", d); hb.addWidget(cancel)
+            cancel.setFixedWidth(80)
+            hb.addWidget(QWidget(d))
+            sle.setText(name)
+            if "/" in name and "." in name:
+                i = name.rindex("/")
+                j = name.rindex(".")
+                if j > i:
+                    sle.setSelection(i+1, j-i-1)
+            sle.setFocus()
+            width = sle.fontMetrics().boundingRect(name).width()
+            sle.setMinimumWidth(width*9//8)
+            d.connect(cancel, SIGNAL("clicked()"), d.reject)
+            d.connect(ok, SIGNAL("clicked()"), d.accept)
+            if d.exec_() == QDialog.Accepted:
                 try:
+                    s = sle.text()
                     os.rename(self.imglist[0], unicode(s))
                     self.imglist[0] = unicode(s)
                     self.load(0)
