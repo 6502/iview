@@ -31,6 +31,7 @@ Key bindings
 - "S" : Save image as
 - "U" : Undo unsaved changes (rotation/crop/markup)
 - "F2" : Rename current file
+- "Del" : Delete current file
 
 Mouse drag does panning, mouse wheel does zooming.
 
