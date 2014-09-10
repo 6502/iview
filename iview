@@ -194,14 +194,16 @@ class Viewer(QW):
                                     QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
                 try:
                     os.unlink(self.imglist[0])
-                    self.imglist.pop(0)
-                    self.scaled = None
-                    if len(self.imglist) == 0:
-                        sys.exit(1)
-                    else:
-                        self.load(0)
                 except OSError:
-                    QMessageBox.information("Error deleting requested file")
+                    QMessageBox.information(self, "IView",
+                                            "Error deleting image file")
+                    return
+                self.scaled = None
+                self.imglist.pop(0)
+                if len(self.imglist) == 0:
+                    sys.exit(1)
+                self.load(0)
+                self.zoomAll()
         elif e.key() == Qt.Key_F2:
             name = self.imglist[0]
             d = QDialog(self)
@@ -257,6 +259,7 @@ class Viewer(QW):
                                     "  <li> <b>U</b> Reload original image</li>"
                                     "  <li> <b>S</b> Save modified image</li>"
                                     "  <li> <b>F2</b> Rename current file</li>"
+                                    "  <li> <b>Del</b> delete current file</li>"
                                     "  <li> <b>X</b> Customize</li>"
                                     "</ul>")
         self.update()
@@ -749,7 +752,7 @@ if len(sys.argv) in (2, 3) and sys.argv[1] == "--screenshot":
     img = QPixmap.grabWindow(app.desktop().winId())
     fname = "iview-screenshot.png" if len(sys.argv) == 2 else sys.argv[2]
     img.save(fname)
-    sys.argv[1] = fname
+    sys.argv[1:] = [fname]
 
 def smartSort(s):
     return tuple(int(x) if x[0] in "0123456789" else x
