@@ -26,6 +26,7 @@ Key bindings
 - "A" : Arrow markup mode ("1"-"9" thickness, "R"/"G"/"B" color)
 - "T" : Text markup mode (ctrl-"1".."9" font size, ctrl-"R"/"G"/"B" color)
 - "Y" : Grayscale conversion (simply keeps green channel only)
+- "P" : Pixel inspection mode
 - "M" : Measuring mode
 - "C" : Crop image
 - "S" : Save image as
