@@ -573,16 +573,21 @@ class PixColorTool(Tool):
             r = (col >> 16) & 255
             g = (col >> 8) & 255
             b = (col >> 0) & 255
-            cc = QBrush(QColor(0, 0, 0) if g > 128 else QColor(255, 255, 255))
+            c0 = QBrush(QColor(0, 0, 0))
+            c1 = QBrush(QColor(255, 255, 255))
 
             x0, y0 = self.iview.map(x, y)
             x1, y1 = self.iview.map(x+1, y+1)
             h = (y1 - y0) * 10
             s = (y1 - y0) * 2
-            dc.fillRect(x0, y0-h-s, x1-x0, h, cc)
-            dc.fillRect(x0, y1+s, x1-x0, h, cc)
-            dc.fillRect(x0-h-s, y0, h, y1-y0, cc)
-            dc.fillRect(x1+s, y0, h, y1-y0, cc)
+            dc.fillRect(x0-1, y0-h-s-1, x1-x0+2, h+2, c0)
+            dc.fillRect(x0-1, y1+s-1, x1-x0+2, h+2, c0)
+            dc.fillRect(x0-h-s-1, y0-1, h+2, y1-y0+2, c0)
+            dc.fillRect(x1+s-1, y0-1, h+2, y1-y0+2, c0)
+            dc.fillRect(x0, y0-h-s, x1-x0, h, c1)
+            dc.fillRect(x0, y1+s, x1-x0, h, c1)
+            dc.fillRect(x0-h-s, y0, h, y1-y0, c1)
+            dc.fillRect(x1+s, y0, h, y1-y0, c1)
             self.text(dc, "Pixel(x=%i, y=%i): rgb(%i, %i, %i), #%02x%02x%02x, alpha=%i" % (x, y, r, g, b, r, g, b, a))
 
     def hit(self, mx, my, button):
