@@ -470,7 +470,7 @@ class RectTool(Tool):
                 f = 4+8
 
             if f:
-                cur = map(int, self.iview.revmap(mx, my))
+                cur = list(map(int, self.iview.revmap(mx, my)))
                 def tracking(x, y):
                     if x is not None:
                         x, y = map(int, self.iview.revmap(x, y))
@@ -632,7 +632,7 @@ class ArrowTool(Tool):
                 i = 2
             def tracking(x, y):
                 if x is not None:
-                    self.pts[i:i+2] = map(int, self.iview.revmap(x, y))
+                    self.pts[i:i+2] = list(map(int, self.iview.revmap(x, y)))
             return tracking
 
     def key(self, e):
@@ -701,7 +701,7 @@ class MeasuringTool(Tool):
                 i = 2
             def tracking(x, y):
                 if x is not None:
-                    self.pts[i:i+2] = map(int, self.iview.revmap(x, y))
+                    self.pts[i:i+2] = list(map(int, self.iview.revmap(x, y)))
                     if app.keyboardModifiers() == Qt.ShiftModifier:
                         if (abs(self.pts[i] - self.pts[0+2-i]) <
                             abs(self.pts[i+1] - self.pts[1+3-(i+1)])):
@@ -742,7 +742,7 @@ class TextTool(Tool):
 
     def hit(self, mx, my, button):
         if button == Qt.LeftButton:
-            cur = map(int, self.iview.revmap(mx, my))
+            cur = list(map(int, self.iview.revmap(mx, my)))
             def tracking(mx, my):
                 if mx is not None:
                     x, y = map(int, self.iview.revmap(mx, my))
@@ -786,7 +786,7 @@ class MyDialog(QDialog):
         self.show()
 
 if len(sys.argv) == 1:
-    print "Missing filename"
+    print("Missing filename")
     sys.exit(1)
 
 app = QApplication([])
