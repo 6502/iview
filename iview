@@ -25,6 +25,11 @@
 import sys, gc, os, time, math, re, subprocess
 from PyQt4.Qt import *
 
+try:
+    unicode
+except:
+    unicode = str
+
 QW = QWidget
 
 def between(x, a, b, eps=0):
@@ -158,7 +163,7 @@ class Viewer(QW):
         elif e.key() == Qt.Key_S:
             fname = str(QFileDialog.getSaveFileName(self, "Save image as", self.imglist[0]))
             if fname != "":
-                supported_extensions = [str(x).lower() for x in QImageWriter.supportedImageFormats()]
+                supported_extensions = [bytes(x).decode() for x in QImageWriter.supportedImageFormats()]
                 if re.match("^.*\\.(" + "|".join(supported_extensions) + ")$", fname):
                     if self.img.save(fname):
                         if fname not in self.imglist:
