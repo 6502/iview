@@ -208,7 +208,7 @@ class Viewer(QW):
                 self.scaled = None
                 self.imglist.pop(0)
                 if len(self.imglist) == 0:
-                    sys.exit(1)
+                    sys.exit(0)
                 self.load(0)
                 self.zoomAll()
         elif e.key() == Qt.Key_F2:
