@@ -791,17 +791,23 @@ class MyDialog(QDialog):
         self.setModal(True)
         self.show()
 
-if len(sys.argv) == 1:
+uargv = sys.argv
+if len(uargv) == 1:
     print("Missing filename")
     sys.exit(1)
 
-app = QApplication([])
+app = QApplication(sys.argv)
 
-if len(sys.argv) in (2, 3) and sys.argv[1] == "--screenshot":
+if sys.version_info[0]<3:
+    # if we are on Python 2, let Qt deal with the encoding madness
+    # (on Python 3 sys.argv is already a list of unicode strings)
+    uargv = [unicode(x) for x in app.arguments()]
+
+if len(uargv) in (2, 3) and uargv[1] == "--screenshot":
     img = QPixmap.grabWindow(app.desktop().winId())
-    fname = "iview-screenshot.png" if len(sys.argv) == 2 else sys.argv[2]
+    fname = "iview-screenshot.png" if len(uargv) == 2 else uargv[2]
     img.save(fname)
-    sys.argv[1:] = [fname]
+    uargv[1:] = [fname]
 
 class SortWrapper:
     def __init__(self, x):
@@ -817,7 +823,7 @@ def smartSort(s):
     return tuple(SortWrapper(int(x)) if x[0] in "0123456789" else SortWrapper(x)
                  for x in re.findall("[0-9]+|[^0-9]+", s.upper()))
 
-filelist = sys.argv[1:]
+filelist = uargv[1:]
 if len(filelist) == 1 and filelist[0][:8] == "file:///":
     filelist[0] = filelist[0][7:]
 if len(filelist) == 1:
