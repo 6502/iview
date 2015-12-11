@@ -124,7 +124,7 @@ class Viewer(QW):
             self.load(0)
             if (w, h) != (self.img.width(), self.img.height()):
                 self.zoomAll()
-        elif e.key() == Qt.Key_F or e.key() == Qt.Key_Return:
+        elif e.key() in (Qt.Key_F, Qt.Key_Return, Qt.Key_Enter):
             self.fullscreen = not self.fullscreen
             if self.fullscreen:
                 self.parent().showFullScreen()
@@ -512,7 +512,7 @@ class CropTool(RectTool):
                        abs(self.geo[3]-self.geo[1])))
 
     def key(self, e):
-        if e.key() in (Qt.Key_Return, Qt.Key_C):
+        if e.key() in (Qt.Key_Return, Qt.Key_C, Qt.Key_Enter):
             x0, y0, x1, y1 = self.geo
             if x0 > x1: x0, x1 = x1, x0
             if y0 > y1: y0, y1 = y1, y0
@@ -545,7 +545,7 @@ class EllipseTool(RectTool):
         self.text(dc, "Ellipse drawing mode: 1-9=thickness, r/g/b=color")
 
     def key(self, e):
-        if e.key() in (Qt.Key_Return, Qt.Key_E):
+        if e.key() in (Qt.Key_Return, Qt.Key_E, Qt.Key_Enter):
             x0, y0, x1, y1 = self.geo
             if x0 > x1: x0, x1 = x1, x0
             if y0 > y1: y0, y1 = y1, y0
@@ -646,7 +646,7 @@ class ArrowTool(Tool):
             if ArrowTool.k < 100: ArrowTool.k += 1
         if e.key() == Qt.Key_Plus:
             if ArrowTool.k > 4: ArrowTool.k -= 1
-        if e.key() in (Qt.Key_Return, Qt.Key_A):
+        if e.key() in (Qt.Key_Return, Qt.Key_A, Qt.Key_Enter):
             self.iview.to32bpp()
             x0, y0, x1, y1 = map(int, self.pts)
             dx, dy = (x1 - x0)//self.k, (y1 - y0)//self.k
@@ -765,7 +765,7 @@ class TextTool(Tool):
             return True
         elif e.key() == Qt.Key_Escape:
             return Tool.key(self, e)
-        elif e.key() == Qt.Key_Return:
+        elif e.key() in (Qt.Key_Return, Qt.Key_Enter):
             self.iview.to32bpp()
             x, y = self.pos
             dc = QPainter(self.iview.img)
