@@ -213,7 +213,7 @@ class Viewer(QW):
                 self.load(0)
                 self.zoomAll()
         elif e.key() == Qt.Key_F2:
-            name = self.imglist[0]
+            name = QString(self.imglist[0])
             d = QDialog(self)
             d.setWindowTitle("Rename image")
             vb = QVBoxLayout(d)
@@ -227,11 +227,11 @@ class Viewer(QW):
             cancel.setFixedWidth(80)
             hb.addWidget(QWidget(d))
             sle.setText(name)
-            if "/" in name and "." in name:
-                i = name.rindex("/")
-                j = name.rindex(".")
-                if j > i:
-                    sle.setSelection(i+1, j-i-1)
+            i = name.lastIndexOf("/")
+            j = name.lastIndexOf(".")
+            if j<0:
+                j=name.length()
+            sle.setSelection(i+1, j-i-1)
             sle.setFocus()
             width = sle.fontMetrics().boundingRect(name).width()
             sle.setMinimumWidth(width*9//8)
