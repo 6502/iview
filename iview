@@ -263,13 +263,13 @@ class Viewer(QW):
                                     "  <li> <b>M</b> Measure mode</li>"
                                     "  <li> <b>E</b> Ellipse markup mode</li>"
                                     "  <li> <b>T</b> Text markup mode</li>"
-                                    "  <li> <b>C</b> Cropping mode</li>"
+                                    "  <li> <b>C</b> Cropping/yanking mode</li>"
                                     "  <li> <b>Y</b> Convert to grayscale</li>"
                                     "  <li> <b>R</b> Rotate image 90 degrees</li>"
                                     "  <li> <b>U</b> Reload original image</li>"
                                     "  <li> <b>S</b> Save modified image</li>"
                                     "  <li> <b>F2</b> Rename current file</li>"
-                                    "  <li> <b>Del</b> delete current file</li>"
+                                    "  <li> <b>Del</b> Delete current file</li>"
                                     "  <li> <b>X</b> Customize</li>"
                                     "</ul>")
         self.update()
@@ -505,24 +505,28 @@ class CropTool(RectTool):
         if x1 < w: dc.fillRect(x1, y0, w-x1, y1-y0, dark)
         if y1 < h: dc.fillRect(0, y1, w, h-y1, dark)
         RectTool.draw(self, dc)
-        self.text(dc, "Crop: (%i, %i) - (%i, %i) = %i x %i" %
+        self.text(dc, "Crop: (%i, %i) - (%i, %i) = %i x %i (Y to copy)" %
                       (self.geo[0], self.geo[1],
                        self.geo[2], self.geo[3],
                        abs(self.geo[2]-self.geo[0]),
                        abs(self.geo[3]-self.geo[1])))
 
     def key(self, e):
-        if e.key() in (Qt.Key_Return, Qt.Key_C, Qt.Key_Enter):
+        if e.key() in (Qt.Key_Return, Qt.Key_C, Qt.Key_Enter, Qt.Key_Y):
             x0, y0, x1, y1 = self.geo
             if x0 > x1: x0, x1 = x1, x0
             if y0 > y1: y0, y1 = y1, y0
             x0, y0 = max(0, x0), max(0, y0)
             x1, y1 = min(self.iview.img.width(), x1), min(self.iview.img.height(), y1)
             if x0 < x1 and y0 < y1:
-                self.iview.img = self.iview.img.copy(x0, y0, x1-x0, y1-y0)
-                self.iview.scaled = None
+                cropped = self.iview.img.copy(x0, y0, x1-x0, y1-y0)
+                if e.key() == Qt.Key_Y:
+                    QApplication.clipboard().setImage(cropped)
+                else:
+                    self.iview.img = cropped
+                    self.iview.scaled = None
+                    self.iview.zoomAll()
             self.iview.tools.remove(self)
-            self.iview.zoomAll()
             return True
         else:
             return Tool.key(self, e)
