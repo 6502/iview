@@ -55,6 +55,7 @@ class Viewer(QW):
         self.imglist = imglist[:]
         self.setMouseTracking(True)
         self.fullscreen = False
+        self.titleOverlay = False
         self.timer = QTimer(self)
         self.connect(self.timer, SIGNAL("timeout()"), self.checkmtime)
         self.timer.start(250)
@@ -68,7 +69,7 @@ class Viewer(QW):
         self.img = QImage(self.imglist[0])
         self.scaled = None
         self.imgmtime = os.stat(self.imglist[0]).st_mtime
-        self.setTitle()
+        self.parent().setWindowTitle(self.mkTitle())
         self.update()
         gc.collect()
 
@@ -246,6 +247,8 @@ class Viewer(QW):
                 except Exception:
                     QMessageBox.critical(self, "IView: Unable to rename the file",
                                          "There was a problem renaming the file")
+        elif e.key() == Qt.Key_O:
+            self.titleOverlay = not self.titleOverlay
         elif e.key() == Qt.Key_F1:
             QMessageBox.information(self, "IView",
                                     "<center><h1>IView</h1>A simple image viewer<br>"
@@ -258,6 +261,7 @@ class Viewer(QW):
                                     "  <li> <b>Home</b> Zoom fit</li>"
                                     "  <li> <b>1/2/3/4</b> Display resolution to Nx</li>"
                                     "  <li> <b>F or Enter</b> Fullscreen mode</li>"
+                                    "  <li> <b>O</b> Toggle file name overlay in fullscreen mode</li>"
                                     "  <li> <b>A</b> Arrow markup mode</li>"
                                     "  <li> <b>P</b> Pixel inspection mode</li>"
                                     "  <li> <b>M</b> Measure mode</li>"
@@ -330,10 +334,13 @@ class Viewer(QW):
         y = 16
         dc.setFont(QFont("sans-serif", 11))
 
+        if len(self.tools)==0 and self.fullscreen and self.titleOverlay:
+            self.statusText(dc, self.mkTitle())
+
         for t in self.tools:
             t.draw(dc)
 
-    def setTitle(self):
+    def mkTitle(self):
         if self.img.isNull():
             name = self.imglist[0] + " (unable to load as image)"
         else:
@@ -344,7 +351,7 @@ class Viewer(QW):
                 self.img.height() * self.img.bytesPerLine() / (1024.0*1024.0))
         if "/" in name:
             name = name[name.rindex("/")+1:]
-        self.parent().setWindowTitle(name)
+        return name
 
     def mousePressEvent(self, e):
         self.pos = ((e.x() - self.tx) / self.scale,
@@ -387,6 +394,15 @@ class Viewer(QW):
             self.scaled = None
             self.update()
 
+    def statusText(self, dc, msg):
+        dc.setPen(QPen(QColor(0, 0, 0)))
+        dc.drawText(4, 20, msg )
+        dc.drawText(7, 20, msg )
+        dc.drawText(5, 19, msg )
+        dc.drawText(5, 21, msg )
+        dc.setPen(QPen(QColor(0, 255, 0)))
+        dc.drawText(5, 20, msg )
+
 class Tool(object):
     pen = 4
     color = 0
@@ -422,13 +438,7 @@ class Tool(object):
             return True
 
     def text(self, dc, msg):
-        dc.setPen(QPen(QColor(0, 0, 0)))
-        dc.drawText(4, 20, msg )
-        dc.drawText(7, 20, msg )
-        dc.drawText(5, 19, msg )
-        dc.drawText(5, 21, msg )
-        dc.setPen(QPen(QColor(0, 255, 0)))
-        dc.drawText(5, 20, msg )
+        return self.iview.statusText(dc, msg)
 
 class RectTool(Tool):
     def __init__(self, iview):
