@@ -227,11 +227,9 @@ class Viewer(QW):
             cancel.setFixedWidth(80)
             hb.addWidget(QWidget(d))
             sle.setText(name)
-            if "/" in name and "." in name:
-                i = name.rindex("/")
-                j = name.rindex(".")
-                if j > i:
-                    sle.setSelection(i+1, j-i-1)
+            basename_start = 1+name.rindex("/") if "/" in name else 0
+            if "." in name[basename_start:]:
+                sle.setSelection(basename_start, name[basename_start:].rindex("."))
             sle.setFocus()
             width = sle.fontMetrics().boundingRect(name).width()
             sle.setMinimumWidth(width*9//8)
