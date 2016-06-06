@@ -513,7 +513,7 @@ class CropTool(RectTool):
         if x1 < w: dc.fillRect(x1, y0, w-x1, y1-y0, dark)
         if y1 < h: dc.fillRect(0, y1, w, h-y1, dark)
         RectTool.draw(self, dc)
-        self.text(dc, "Crop: (%i, %i) - (%i, %i) = %i x %i (Y to copy)" %
+        self.text(dc, "Crop: (%i, %i) - (%i, %i) = %i x %i (A to select all, Y to copy)" %
                       (self.geo[0], self.geo[1],
                        self.geo[2], self.geo[3],
                        abs(self.geo[2]-self.geo[0]),
@@ -535,6 +535,9 @@ class CropTool(RectTool):
                     self.iview.scaled = None
                     self.iview.zoomAll()
             self.iview.tools.remove(self)
+            return True
+        elif e.key() in (Qt.Key_A, ):
+            self.geo = [0, 0, self.iview.img.width(), self.iview.img.height()]
             return True
         else:
             return Tool.key(self, e)
