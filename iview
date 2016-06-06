@@ -813,6 +813,17 @@ if len(uargv) == 1:
 
 app = QApplication(sys.argv)
 
+# override the excepthook to actually quit on Ctrl-C
+def ctrlc_excepthook(type, value, tback):
+    if isinstance(value, KeyboardInterrupt):
+        # if we got a Ctrl-C try to quit gracefully
+        app.quit()
+    else:
+        # otherwise call the default hook
+        sys.__excepthook__(type, value, tback)
+
+sys.excepthook = ctrlc_excepthook
+
 if sys.version_info[0]<3:
     # if we are on Python 2, let Qt deal with the encoding madness
     # (on Python 3 sys.argv is already a list of unicode strings)
