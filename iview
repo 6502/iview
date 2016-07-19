@@ -141,6 +141,16 @@ class Viewer(QW):
             self.img = img
             self.zoomAll()
             gc.collect()
+        elif e.key() == Qt.Key_H:
+            self.img = self.img.mirrored(True, False)
+            self.scaled = None
+            self.update()
+            gc.collect()
+        elif e.key() == Qt.Key_V:
+            self.img = self.img.mirrored(False, True)
+            self.scaled = None
+            self.update()
+            gc.collect()
         elif e.key() == Qt.Key_C:
             self.tools = [CropTool(self)]
         elif e.key() == Qt.Key_E:
@@ -268,6 +278,8 @@ class Viewer(QW):
                                     "  <li> <b>C</b> Cropping/yanking mode</li>"
                                     "  <li> <b>Y</b> Convert to grayscale</li>"
                                     "  <li> <b>R</b> Rotate image 90 degrees</li>"
+                                    "  <li> <b>H</b> Horizontal flip</li>"
+                                    "  <li> <b>V</b> Vertical flip</li>"
                                     "  <li> <b>U</b> Reload original image</li>"
                                     "  <li> <b>S</b> Save modified image</li>"
                                     "  <li> <b>F2</b> Rename current file</li>"
