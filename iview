@@ -843,6 +843,9 @@ class SortWrapper:
         else:
             return id(type(self.x)) < id(type(other.x))
 
+    def __eq__(self, other):
+        return self.x == other.x
+
 def smartSort(s):
     return tuple(SortWrapper(int(x)) if x[0] in "0123456789" else SortWrapper(x)
                  for x in re.findall("[0-9]+|[^0-9]+", s.upper()))
