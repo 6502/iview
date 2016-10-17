@@ -525,7 +525,7 @@ class CropTool(RectTool):
         if x1 < w: dc.fillRect(x1, y0, w-x1, y1-y0, dark)
         if y1 < h: dc.fillRect(0, y1, w, h-y1, dark)
         RectTool.draw(self, dc)
-        self.text(dc, "Crop: (%i, %i) - (%i, %i) = %i x %i (Y to copy)" %
+        self.text(dc, "Crop: (%i, %i) - (%i, %i) = %i x %i (A to select all, Y to copy)" %
                       (self.geo[0], self.geo[1],
                        self.geo[2], self.geo[3],
                        abs(self.geo[2]-self.geo[0]),
@@ -547,6 +547,9 @@ class CropTool(RectTool):
                     self.iview.scaled = None
                     self.iview.zoomAll()
             self.iview.tools.remove(self)
+            return True
+        elif e.key() in (Qt.Key_A, ):
+            self.geo = [0, 0, self.iview.img.width(), self.iview.img.height()]
             return True
         else:
             return Tool.key(self, e)
@@ -821,6 +824,17 @@ if len(uargv) == 1:
     sys.exit(1)
 
 app = QApplication(sys.argv)
+
+# override the excepthook to actually quit on Ctrl-C
+def ctrlc_excepthook(type, value, tback):
+    if isinstance(value, KeyboardInterrupt):
+        # if we got a Ctrl-C try to quit gracefully
+        app.quit()
+    else:
+        # otherwise call the default hook
+        sys.__excepthook__(type, value, tback)
+
+sys.excepthook = ctrlc_excepthook
 
 if sys.version_info[0]<3:
     # if we are on Python 2, let Qt deal with the encoding madness
