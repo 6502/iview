@@ -139,6 +139,7 @@ class Viewer(QW):
             dc.drawImage(0, -self.img.height(), self.img)
             dc = None
             self.img = img
+            self.scaled = None
             self.zoomAll()
             gc.collect()
         elif e.key() == Qt.Key_H:
