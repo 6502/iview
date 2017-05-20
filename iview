@@ -65,12 +65,14 @@ class Viewer(QW):
         self.load(0)
 
     def load(self, index):
-        self.imglist[:] = self.imglist[index:] + self.imglist[:index]
-        self.img = QImage(self.imglist[0])
-        self.scaled = None
-        self.imgmtime = os.stat(self.imglist[0]).st_mtime
-        self.parent().setWindowTitle(self.mkTitle())
-        self.update()
+        img = QImage(self.imglist[index])
+        if img.width() > 0:
+            self.imglist[:] = self.imglist[index:] + self.imglist[:index]
+            self.img = img
+            self.scaled = None
+            self.imgmtime = os.stat(self.imglist[0]).st_mtime
+            self.parent().setWindowTitle(self.mkTitle())
+            self.update()
         gc.collect()
 
     def checkmtime(self):
