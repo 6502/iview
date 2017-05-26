@@ -628,10 +628,15 @@ class PixColorTool(Tool):
 
     def hit(self, mx, my, button):
         if button == Qt.LeftButton:
-            x, y = map(int, self.iview.revmap(mx, my))
-            if 0 <= x < self.iview.img.width() and 0 <= y < self.iview.img.height():
-                self.p = (x, y)
-                self.iview.update()
+            def proc(x, y):
+                if 0 <= x < self.iview.img.width() and 0 <= y < self.iview.img.height():
+                    self.p = (x, y)
+                    self.iview.update()
+            proc(*map(int, self.iview.revmap(mx, my)))
+            def tracking(x, y):
+                if x is not None:
+                    proc(*map(int, self.iview.revmap(x, y)))
+            return tracking
 
 class ArrowTool(Tool):
     k = 8
