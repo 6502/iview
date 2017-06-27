@@ -208,7 +208,7 @@ class Viewer(QW):
                                          "The requested image format is not supported, supported extensions are "+
                                          ", ".join(supported_extensions))
         elif e.key() == Qt.Key_X:
-            subprocess.Popen([os.getenv("EDITOR"), __file__])
+            subprocess.Popen([os.getenv("PIXEDITOR") or "gimp", self.imglist[0]])
         elif e.key() == Qt.Key_Delete:
             if QMessageBox.question(self,
                                     "Image deletion",
@@ -287,7 +287,7 @@ class Viewer(QW):
                                     "  <li> <b>S</b> Save modified image</li>"
                                     "  <li> <b>F2</b> Rename current file</li>"
                                     "  <li> <b>Del</b> Delete current file</li>"
-                                    "  <li> <b>X</b> Customize</li>"
+                                    "  <li> <b>X</b> Run external editor</li>"
                                     "</ul>")
         self.update()
 
