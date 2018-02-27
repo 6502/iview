@@ -309,14 +309,15 @@ class Viewer(QW):
         self.update()
 
     def wheelEvent(self, e):
+        k = 1.01 if (int(e.modifiers()) & Qt.ShiftModifier) != 0 else 1.2
         self.pos = (e.x() - self.tx) / self.scale, (e.y() - self.ty) / self.scale
         sf = self.scale
         d = int(e.delta() / 120)
         while d > 0:
-            sf *= 1.2
+            sf *= k
             d -= 1
         while d < 0:
-            sf /= 1.2
+            sf /= k
             d += 1
         if sf < 0.01:
             sf = 0.01
@@ -479,7 +480,9 @@ class RectTool(Tool):
             dc.drawEllipse(QRectF(x-4, y-4, 8, 8))
 
     def hit(self, mx, my, button):
-        if button == Qt.LeftButton:
+        if button == Qt.MiddleButton and app.keyboardModifiers() == Qt.ShiftModifier:
+            print(self.geo)
+        elif button == Qt.LeftButton:
             x0, y0, x1, y1 = self.geo
             x0, y0 = map(int, self.iview.map(self.geo[0], self.geo[1]))
             x1, y1 = map(int, self.iview.map(self.geo[2], self.geo[3]))
