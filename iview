@@ -23,7 +23,7 @@
 # SOFTWARE.
 
 import sys, gc, os, time, math, re, subprocess
-from PyQt4.Qt import *
+from PyQt5.Qt import *
 
 try:
     unicode
@@ -57,7 +57,7 @@ class Viewer(QW):
         self.fullscreen = False
         self.titleOverlay = False
         self.timer = QTimer(self)
-        self.connect(self.timer, SIGNAL("timeout()"), self.checkmtime)
+        self.timer.timeout.connect(self.checkmtime)
         self.timer.start(250)
         self.pos = None
         self.tracking = None
@@ -247,8 +247,8 @@ class Viewer(QW):
             sle.setFocus()
             width = sle.fontMetrics().boundingRect(name).width()
             sle.setMinimumWidth(width*9//8)
-            d.connect(cancel, SIGNAL("clicked()"), d.reject)
-            d.connect(ok, SIGNAL("clicked()"), d.accept)
+            cancel.clicked.connect(d.reject)
+            ok.clicked.connect(d.accept)
             if d.exec_() == QDialog.Accepted:
                 try:
                     s = sle.text()
@@ -312,7 +312,7 @@ class Viewer(QW):
         k = 1.01 if (int(e.modifiers()) & Qt.ShiftModifier) != 0 else 1.2
         self.pos = (e.x() - self.tx) / self.scale, (e.y() - self.ty) / self.scale
         sf = self.scale
-        d = int(e.delta() / 120)
+        d = int(e.angleDelta().y() / 120.)
         while d > 0:
             sf *= k
             d -= 1
@@ -663,9 +663,9 @@ class ArrowTool(Tool):
             x0, y0 = map(int, self.iview.map(*self.pts[:2]))
             x1, y1 = map(int, self.iview.map(*self.pts[2:]))
             i = -1
-            if (mx - x0)**2 + (my - y0)**2 < 8**2:
+            if (mx - x0)**2 + (my - y0)**2 < 32**2:
                 i = 0
-            elif (mx - x1)**2 + (my - y1)**2 < 8**2:
+            elif (mx - x1)**2 + (my - y1)**2 < 32**2:
                 i = 2
             else:
                 xx, yy = self.iview.revmap(mx, my)
