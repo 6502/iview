@@ -175,7 +175,7 @@ class Viewer(QW):
         elif e.key() == Qt.Key_T:
             self.tools = [TextTool(self)]
         elif e.key() == Qt.Key_S:
-            fname = str(QFileDialog.getSaveFileName(self, "Save image as", self.imglist[0]))
+            fname = str(QFileDialog.getSaveFileName(self, "Save image as", self.imglist[0])[0])
             if fname != "":
                 supported_extensions = [bytes(x).decode() for x in QImageWriter.supportedImageFormats()]
                 if re.match("^.*\\.(" + "|".join(supported_extensions) + ")$", fname, re.IGNORECASE):
