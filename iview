@@ -23,7 +23,15 @@
 # SOFTWARE.
 
 import sys, gc, os, time, math, re, subprocess
-from PyQt5.Qt import *
+
+try:
+    from PyQt5.Qt import *
+    pyside = False
+except:
+    from PySide2.QtWidgets import *
+    from PySide2.QtGui import *
+    from PySide2.QtCore import *
+    pyside = True
 
 try:
     unicode
@@ -167,8 +175,9 @@ class Viewer(QW):
         elif e.key() == Qt.Key_Y:
             self.to32bpp()
             b = self.img.bits()
-            b.setsize(self.img.height() * self.img.bytesPerLine())
-            b.setwriteable(True)
+            if not pyside:
+                b.setsize(self.img.height() * self.img.bytesPerLine())
+                b.setwriteable(True)
             for i in range(0, self.img.height()*self.img.bytesPerLine(), 4):
                 b[i] = b[i+2] = b[i+1]
             self.scaled = None
@@ -177,7 +186,7 @@ class Viewer(QW):
         elif e.key() == Qt.Key_S:
             fname = str(QFileDialog.getSaveFileName(self, "Save image as", self.imglist[0])[0])
             if fname != "":
-                supported_extensions = [bytes(x).decode() for x in QImageWriter.supportedImageFormats()]
+                supported_extensions = [x.data().decode() for x in QImageWriter.supportedImageFormats()]
                 if re.match("^.*\\.(" + "|".join(supported_extensions) + ")$", fname, re.IGNORECASE):
                     if self.img.save(fname):
                         if fname not in self.imglist:
@@ -440,7 +449,7 @@ class Tool(object):
             self.iview.update()
             return True
         if e.key() >= Qt.Key_1 and e.key() <= Qt.Key_9:
-            Tool.pen = (e.key() - Qt.Key_1)*2
+            Tool.pen = (e.key() - int(Qt.Key_1))*2
             self.font.setPixelSize(self.pen * 8 + 11)
             self.iview.update()
             return True
@@ -878,7 +887,7 @@ if len(filelist) == 1 and filelist[0][:8] == "file:///":
 if len(filelist) == 1:
     slash = filelist[0].rindex("/") if "/" in filelist[0] else -1
     fl = []
-    supported_extensions = [bytes(x).decode() for x in QImageReader.supportedImageFormats()]
+    supported_extensions = [x.data().decode() for x in QImageReader.supportedImageFormats()]
     fre = re.compile("^.*\\.(" + "|".join(supported_extensions) + ")$", re.IGNORECASE)
     for f in os.listdir(filelist[0][:slash+1] + "."):
         if fre.match(f):
