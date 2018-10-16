@@ -70,11 +70,31 @@ class Viewer(QW):
         self.pos = None
         self.tracking = None
         self.tools = []
+        self.vector_overlay = []
         self.load(0)
 
     def load(self, index):
         img = QImage(self.imglist[index])
         if img.width() > 0:
+            self.vector_overlay = []
+            try:
+                #
+                # .vo file = vector overlay data, each line is
+                #    <command>,<color>,<parm1>,<parm2>,...
+                #
+                # commands are:
+                #    "L" = polyline (x1, y1, x2, y2, ...)
+                #    "P" = filled polygon (x1, y1, x2, y2, ...)
+                #    "C" = circle (r, cx1, cy1, cx2, cy2, ...)
+                #    "x" = cross (x1, y1, x2, y2, ...)
+                #    "+" = cross (x1, y1, x2, y2, ...)
+                #
+                for L in open(self.imglist[index] + ".vo"):
+                    parts = L.strip().split(",")
+                    if len(parts) > 2:
+                        self.vector_overlay.append(parts[:2] + list(map(float, parts[2:])))
+            except:
+                pass
             self.imglist[:] = self.imglist[index:] + self.imglist[:index]
             self.img = img
             self.scaled = None
@@ -350,7 +370,40 @@ class Viewer(QW):
                 simg = self.img.scaled(QSize(sw, sh), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
                 self.scaled = [self.scale, simg]
             dc.drawImage(self.tx, self.ty, self.scaled[1])
-
+        for L in self.vector_overlay:
+            if L[0] == 'L':
+                dc.setPen(QPen(QColor(L[1])))
+                pts = []
+                for i in range(2, len(L)-1, 2):
+                    pts.append(QPointF(L[i]*self.scale + self.tx, L[i+1]*self.scale + self.ty))
+                dc.drawPolyline(QPolygonF(pts))
+            elif L[0] == 'P':
+                dc.setBrush(QBrush(QColor(L[1])))
+                dc.setPen(Qt.NoPen)
+                pts = []
+                for i in range(2, len(L)-1, 2):
+                    pts.append(QPointF(L[i]*self.scale + self.tx, L[i+1]*self.scale + self.ty))
+                dc.drawPolygon(QPolygonF(pts))
+            elif L[0] == 'C':
+                dc.setBrush(QBrush())
+                dc.setPen(QPen(QColor(L[1])))
+                r = L[2] * self.scale
+                pts = []
+                for i in range(3, len(L)-1, 2):
+                    dc.drawEllipse(QRectF(L[i]*self.scale + self.tx - r,
+                                          L[i+1]*self.scale + self.ty - r,
+                                          r*2, r*2))
+            elif L[0] == 'x' or L[0] == '+':
+                dc.setPen(QPen(QColor(L[1])))
+                for i in range(2, len(L)-1, 2):
+                    x = L[i]*self.scale + self.tx
+                    y = L[i+1]*self.scale + self.ty
+                    if L[0] == 'x':
+                        dc.drawLine(QPointF(x-10, y-10), QPointF(x+10, y+10))
+                        dc.drawLine(QPointF(x+10, y-10), QPointF(x-10, y+10))
+                    else:
+                        dc.drawLine(QPointF(x-14, y), QPointF(x+14, y))
+                        dc.drawLine(QPointF(x, y-14), QPointF(x, y+14))
         y = 16
         dc.setFont(QFont("sans-serif", 11))
 
