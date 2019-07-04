@@ -135,7 +135,7 @@ class Viewer(QW):
                 return
         if e.key() == Qt.Key_Right:
             w, h = self.img.width(), self.img.height()
-            self.load(1)
+            self.load(min(1, len(self.imglist)) - 1)
             if (w, h) != (self.img.width(), self.img.height()):
                 self.zoomAll()
         elif e.key() == Qt.Key_Left:
