@@ -95,16 +95,21 @@ class Viewer(QW):
                         self.vector_overlay.append(parts[:2] + list(map(float, parts[2:])))
             except:
                 pass
-            self.imglist[:] = self.imglist[index:] + self.imglist[:index]
-            self.img = img
-            self.scaled = None
-            self.imgmtime = os.stat(self.imglist[0]).st_mtime
-            self.parent().setWindowTitle(self.mkTitle())
-            self.update()
+            self.imgmtime = os.stat(self.imglist[index]).st_mtime
+        else:
+            self.imgmtime = None
+        self.imglist[:] = self.imglist[index:] + self.imglist[:index]
+        self.img = img
+        self.scaled = None
+        self.parent().setWindowTitle(self.mkTitle())
+        self.update()
         gc.collect()
 
     def checkmtime(self):
-        imgmtime = os.stat(self.imglist[0]).st_mtime
+        try:
+            imgmtime = os.stat(self.imglist[0]).st_mtime
+        except:
+            imgmtime = None
         if imgmtime != self.imgmtime:
             ow = self.img.width()
             oh = self.img.height()
