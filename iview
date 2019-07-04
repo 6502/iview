@@ -918,7 +918,7 @@ if sys.version_info[0]<3:
 
 if len(uargv) in (2, 3) and uargv[1] == "--screenshot":
     screen = QGuiApplication.primaryScreen()
-    img = screen.grabWindow(0);    
+    img = screen.grabWindow(0);
     fname = "iview-screenshot.png" if len(uargv) == 2 else uargv[2]
     img.save(fname)
     uargv[1:] = [fname]
