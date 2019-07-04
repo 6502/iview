@@ -95,16 +95,21 @@ class Viewer(QW):
                         self.vector_overlay.append(parts[:2] + list(map(float, parts[2:])))
             except:
                 pass
-            self.imglist[:] = self.imglist[index:] + self.imglist[:index]
-            self.img = img
-            self.scaled = None
-            self.imgmtime = os.stat(self.imglist[0]).st_mtime
-            self.parent().setWindowTitle(self.mkTitle())
-            self.update()
+            self.imgmtime = os.stat(self.imglist[index]).st_mtime
+        else:
+            self.imgmtime = None
+        self.imglist[:] = self.imglist[index:] + self.imglist[:index]
+        self.img = img
+        self.scaled = None
+        self.parent().setWindowTitle(self.mkTitle())
+        self.update()
         gc.collect()
 
     def checkmtime(self):
-        imgmtime = os.stat(self.imglist[0]).st_mtime
+        try:
+            imgmtime = os.stat(self.imglist[0]).st_mtime
+        except:
+            imgmtime = None
         if imgmtime != self.imgmtime:
             ow = self.img.width()
             oh = self.img.height()
@@ -130,7 +135,7 @@ class Viewer(QW):
                 return
         if e.key() == Qt.Key_Right:
             w, h = self.img.width(), self.img.height()
-            self.load(1)
+            self.load(min(1, len(self.imglist)) - 1)
             if (w, h) != (self.img.width(), self.img.height()):
                 self.zoomAll()
         elif e.key() == Qt.Key_Left:
@@ -913,7 +918,7 @@ if sys.version_info[0]<3:
 
 if len(uargv) in (2, 3) and uargv[1] == "--screenshot":
     screen = QGuiApplication.primaryScreen()
-    img = screen.grabWindow(0);    
+    img = screen.grabWindow(0);
     fname = "iview-screenshot.png" if len(uargv) == 2 else uargv[2]
     img.save(fname)
     uargv[1:] = [fname]
