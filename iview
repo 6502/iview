@@ -364,7 +364,7 @@ class Viewer(QW):
         w, h = self.width(), self.height()
         dc.fillRect(0, 0, w, h, QBrush(QColor(64, 64, 64)))
 
-        dc.fillRect(self.tx+1, self.ty+1, self.img.width()*self.scale-2, self.img.height()*self.scale-2, self.bbrush)
+        dc.fillRect(QRectF(self.tx+1, self.ty+1, self.img.width()*self.scale-2, self.img.height()*self.scale-2), self.bbrush)
         if self.scale > 1:
             xf = QTransform().translate(self.tx, self.ty).scale(self.scale, self.scale)
             dc.drawImage(QRectF(self.rect()), self.img, xf.inverted()[0].mapRect(QRectF(self.rect())))
@@ -374,7 +374,7 @@ class Viewer(QW):
                 sh = int(self.img.height() * self.scale)
                 simg = self.img.scaled(QSize(sw, sh), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
                 self.scaled = [self.scale, simg]
-            dc.drawImage(self.tx, self.ty, self.scaled[1])
+            dc.drawImage(QPointF(self.tx, self.ty), self.scaled[1])
         for L in self.vector_overlay:
             if L[0] == 'L':
                 dc.setPen(QPen(QColor(L[1])))
