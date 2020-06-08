@@ -88,11 +88,23 @@ class Viewer(QW):
                 #    "C" = circle (r, cx1, cy1, cx2, cy2, ...)
                 #    "x" = cross (x1, y1, x2, y2, ...)
                 #    "+" = cross (x1, y1, x2, y2, ...)
+                #    "T" = text (x, y, font_height, alignment, text)
+                #          alignment can be NW, N, NE, W, C, E, SW, S, SE
+                #          and describes where the text will be in respect to
+                #          given point
                 #
                 for L in open(self.imglist[index] + ".vo"):
-                    parts = L.strip().split(",")
-                    if len(parts) > 2:
-                        self.vector_overlay.append(parts[:2] + list(map(float, parts[2:])))
+                    if L[:2] == "T,":
+                        parts = L.split(",", 6)
+                        self.vector_overlay.append(parts[:2] +
+                                                   [float(parts[2]),
+                                                    float(parts[3]),
+                                                    float(parts[4])] +
+                                                   parts[5:])
+                    else:
+                        parts = L.strip().split(",")
+                        if len(parts) > 2:
+                            self.vector_overlay.append(parts[:2] + list(map(float, parts[2:])))
             except:
                 pass
             self.imgmtime = os.stat(self.imglist[index]).st_mtime
@@ -375,6 +387,15 @@ class Viewer(QW):
                 simg = self.img.scaled(QSize(sw, sh), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
                 self.scaled = [self.scale, simg]
             dc.drawImage(QPointF(self.tx, self.ty), self.scaled[1])
+        tamap = {"NW": Qt.AlignLeft|Qt.AlignTop,
+                 "N": Qt.AlignHCenter|Qt.AlignTop,
+                 "NE": Qt.AlignRight|Qt.AlignTop,
+                 "W": Qt.AlignLeft|Qt.AlignVCenter,
+                 "C": Qt.AlignCenter|Qt.AlignVCenter,
+                 "E": Qt.AlignRight|Qt.AlignVCenter,
+                 "SW": Qt.AlignLeft|Qt.AlignBottom,
+                 "S": Qt.AlignCenter|Qt.AlignBottom,
+                 "SE": Qt.AlignRight|Qt.AlignBottom}
         for L in self.vector_overlay:
             if L[0] == 'L':
                 dc.setPen(QPen(QColor(L[1])))
@@ -409,6 +430,17 @@ class Viewer(QW):
                     else:
                         dc.drawLine(QPointF(x-14, y), QPointF(x+14, y))
                         dc.drawLine(QPointF(x, y-14), QPointF(x, y+14))
+            elif L[0] == 'T':
+                dc.setPen(QPen(QColor(L[1])))
+                x = L[2]*self.scale + self.tx
+                y = L[3]*self.scale + self.ty
+                fh = L[4]*self.scale
+                cc = L[5]
+                txt = L[6]
+                dc.setFont(QFont("sans-serif", int(fh)))
+                dc.drawText(QRectF(x-10000, y-10000, 20000, 20000),
+                            tamap.get(cc, Qt.AlignVCenter|Qt.AlignHCenter),
+                            txt)
         y = 16
         dc.setFont(QFont("sans-serif", 11))
 
@@ -683,14 +715,14 @@ class PixColorTool(Tool):
             x1, y1 = self.iview.map(x+1, y+1)
             h = (y1 - y0) * 10
             s = (y1 - y0) * 2
-            dc.fillRect(x0-1, y0-h-s-1, x1-x0+2, h+2, c0)
-            dc.fillRect(x0-1, y1+s-1, x1-x0+2, h+2, c0)
-            dc.fillRect(x0-h-s-1, y0-1, h+2, y1-y0+2, c0)
-            dc.fillRect(x1+s-1, y0-1, h+2, y1-y0+2, c0)
-            dc.fillRect(x0, y0-h-s, x1-x0, h, c1)
-            dc.fillRect(x0, y1+s, x1-x0, h, c1)
-            dc.fillRect(x0-h-s, y0, h, y1-y0, c1)
-            dc.fillRect(x1+s, y0, h, y1-y0, c1)
+            dc.fillRect(QRectF(x0-1, y0-h-s-1, x1-x0+2, h+2), c0)
+            dc.fillRect(QRectF(x0-1, y1+s-1, x1-x0+2, h+2), c0)
+            dc.fillRect(QRectF(x0-h-s-1, y0-1, h+2, y1-y0+2), c0)
+            dc.fillRect(QRectF(x1+s-1, y0-1, h+2, y1-y0+2), c0)
+            dc.fillRect(QRectF(x0, y0-h-s, x1-x0, h), c1)
+            dc.fillRect(QRectF(x0, y1+s, x1-x0, h), c1)
+            dc.fillRect(QRectF(x0-h-s, y0, h, y1-y0), c1)
+            dc.fillRect(QRectF(x1+s, y0, h, y1-y0), c1)
             self.text(dc, "Pixel(x=%i, y=%i): rgb(%i, %i, %i), #%02x%02x%02x, alpha=%i" % (x, y, r, g, b, r, g, b, a))
 
     def hit(self, mx, my, button):
