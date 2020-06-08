@@ -387,15 +387,6 @@ class Viewer(QW):
                 simg = self.img.scaled(QSize(sw, sh), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
                 self.scaled = [self.scale, simg]
             dc.drawImage(QPointF(self.tx, self.ty), self.scaled[1])
-        tamap = {"NW": Qt.AlignLeft|Qt.AlignTop,
-                 "N": Qt.AlignHCenter|Qt.AlignTop,
-                 "NE": Qt.AlignRight|Qt.AlignTop,
-                 "W": Qt.AlignLeft|Qt.AlignVCenter,
-                 "C": Qt.AlignCenter|Qt.AlignVCenter,
-                 "E": Qt.AlignRight|Qt.AlignVCenter,
-                 "SW": Qt.AlignLeft|Qt.AlignBottom,
-                 "S": Qt.AlignCenter|Qt.AlignBottom,
-                 "SE": Qt.AlignRight|Qt.AlignBottom}
         for L in self.vector_overlay:
             if L[0] == 'L':
                 dc.setPen(QPen(QColor(L[1])))
@@ -438,9 +429,12 @@ class Viewer(QW):
                 cc = L[5]
                 txt = L[6]
                 dc.setFont(QFont("sans-serif", int(fh)))
-                dc.drawText(QRectF(x-10000, y-10000, 20000, 20000),
-                            tamap.get(cc, Qt.AlignVCenter|Qt.AlignHCenter),
-                            txt)
+                r = dc.boundingRect(QRectF(0, 0, 10000, 10000), Qt.AlignLeft|Qt.AlignTop, txt)
+                if cc in ("W", "NW", "SW"): x -= r.width()
+                if cc in ("N", "C", "S"):   x -= r.width()/2
+                if cc in ("N", "NW", "NE"): y -= r.height()
+                if cc in ("W", "C", "E"):   y -= r.height()/2
+                dc.drawText(QRectF(x, y, 10000, 10000), Qt.AlignLeft|Qt.AlignTop, txt)
         y = 16
         dc.setFont(QFont("sans-serif", 11))
 
