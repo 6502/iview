@@ -60,8 +60,8 @@ Features
   - filled polygons
   - stroked polygons
   - circles
-  - x crosses
-  - + crosses
+  - "x" crosses
+  - "+" crosses
   - text
   Vector data is loaded if a file with the same name as the image
   with the addition of ".vo" is present. See code for format.
