@@ -56,3 +56,12 @@ Features
 - PGM file writing (strangely unsupported by QImage)
 - Running with --screenshot [filename] takes a full desktop
   screenshot and opens it
+- Allows visualization of a vector overlay on the image allowing
+  - filled polygons
+  - stroked polygons
+  - circles
+  - x crosses
+  - + crosses
+  - text
+  Vector data is loaded if a file with the same name as the image
+  with the addition of ".vo" is present. See code for format.
