@@ -434,12 +434,12 @@ class Viewer(QW):
                 cc = L[5]
                 txt = L[6]
                 dc.setFont(QFont("sans-serif", int(fh)))
-                r = dc.boundingRect(QRectF(0, 0, 10000, 10000), Qt.AlignLeft|Qt.AlignTop, txt)
+                r = dc.boundingRect(QRectF(0, 0, 10000, 10000), int(Qt.AlignLeft|Qt.AlignTop), txt)
                 if cc in ("W", "NW", "SW"): x -= r.width()
                 if cc in ("N", "C", "S"):   x -= r.width()/2
                 if cc in ("N", "NW", "NE"): y -= r.height()
                 if cc in ("W", "C", "E"):   y -= r.height()/2
-                dc.drawText(QRectF(x, y, 10000, 10000), Qt.AlignLeft|Qt.AlignTop, txt)
+                dc.drawText(QRectF(x, y, 10000, 10000), int(Qt.AlignLeft|Qt.AlignTop), txt)
         y = 16
         dc.setFont(QFont("sans-serif", 11))
 
@@ -731,7 +731,7 @@ class PixColorTool(Tool):
                     if app.keyboardModifiers() != Qt.ShiftModifier:
                         x = int(x)
                         y = int(y)
-                    sys.stdout.write("%.18g,%.18g " % (x, y))
+                    sys.stdout.write("%.18g,%.18g\n" % (x, y))
                     sys.stdout.flush()
                 x = int(x)
                 y = int(y)
