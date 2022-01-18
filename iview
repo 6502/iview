@@ -77,9 +77,41 @@ class Viewer(QW):
         img = QImage(self.imglist[index])
         if img.width() > 0:
             self.imgmtime = os.stat(self.imglist[index]).st_mtime
-            self.vector_overlay = []
-            try:
-                #
+            # Any image may contain a vector overlay package appended at the end.
+            # The package ends with "vo" followed by 4 bytes with the offset of
+            # where the package starts in the file; at that point the first
+            # two bytes must of the package also be "vo".
+            #
+            # An example of writing a vector overlay package at the end of a file is
+            #
+            #     f = open(fname, "ab")
+            #     start = f.tell()
+            #     f.write(b"vo")
+            #     ... write content ...
+            #     f.write(b"vo")
+            #     f.write(bytes([start&255, (start>>8)&255, (start>>16)&255, (start>>24)&255]))
+            #     f.close()
+            #
+            vo = None
+            f = open(self.imglist[index], "rb")
+            f.seek(0, 2)
+            flen = f.tell()
+            if flen > 8: # A vector overlay package is minimum 8 bytes
+                f.seek(flen-6, 0)
+                buf = f.read(6)
+                if buf[0] == (b'v')[0] and buf[1] == (b'o')[0]:
+                    f.seek(buf[2] + (buf[3]<<8) + (buf[4]<<16) + (buf[5]<<24), 0)
+                    if f.read(2) == b"vo":
+                        vo = f.read()[:-6]
+            if vo is None:
+                # The vector overlay can also be a separate file with just the content
+                # and name <image_name>.vo
+                try:
+                    vo = open(self.imglist[index]+".vo", "rb").read()
+                    self.imgmtime = max(self.imgmtime, os.stat(self.imglist[index]+".vo").st_mtime)
+                except IOError:
+                    pass
+            if vo is not None:
                 # .vo file = vector overlay data, each line is
                 #    <command>,<color>,<parm1>,<parm2>,...
                 #
@@ -94,7 +126,7 @@ class Viewer(QW):
                 #          and describes where the text will be in respect to
                 #          given point
                 #
-                for L in open(self.imglist[index] + ".vo"):
+                for L in vo.decode("utf-8").split("\n"):
                     if L[:2] == "T,":
                         parts = L.split(",", 6)
                         self.vector_overlay.append(parts[:2] +
@@ -106,9 +138,6 @@ class Viewer(QW):
                         parts = L.strip().split(",")
                         if len(parts) > 2:
                             self.vector_overlay.append(parts[:2] + list(map(float, parts[2:])))
-                self.imgmtime = max(self.imgmtime, os.stat(self.imglist[index]+".vo").st_mtime)
-            except:
-                pass
         else:
             self.imgmtime = None
         self.imglist[:] = self.imglist[index:] + self.imglist[:index]
