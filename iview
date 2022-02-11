@@ -92,6 +92,7 @@ class Viewer(QW):
             #     f.write(bytes([start&255, (start>>8)&255, (start>>16)&255, (start>>24)&255]))
             #     f.close()
             #
+            self.vector_overlay = []
             vo = None
             f = open(self.imglist[index], "rb")
             f.seek(0, 2)
