@@ -64,6 +64,7 @@ class Viewer(QW):
         self.setMouseTracking(True)
         self.fullscreen = False
         self.titleOverlay = False
+        self.vectorOverlay = True
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.checkmtime)
         self.timer.start(250)
@@ -341,6 +342,8 @@ class Viewer(QW):
                                          "There was a problem renaming the file")
         elif e.key() == Qt.Key_O:
             self.titleOverlay = not self.titleOverlay
+        elif e.key() == Qt.Key_L:
+            self.vectorOverlay = not self.vectorOverlay
         elif e.key() == Qt.Key_F1:
             QMessageBox.information(self, "IView",
                                     "<center><h1>IView</h1>A simple image viewer<br>"
@@ -354,6 +357,7 @@ class Viewer(QW):
                                     "  <li> <b>1/2/3/4</b> Display resolution to Nx</li>"
                                     "  <li> <b>F or Enter</b> Fullscreen mode</li>"
                                     "  <li> <b>O</b> Toggle file name overlay in fullscreen mode</li>"
+                                    "  <li> <b>L</b> Toggle vector overlay display (.vo)</li>"
                                     "  <li> <b>A</b> Arrow markup mode</li>"
                                     "  <li> <b>P</b> Pixel inspection mode</li>"
                                     "  <li> <b>M</b> Measure mode</li>"
@@ -422,54 +426,55 @@ class Viewer(QW):
                 simg = self.img.scaled(QSize(sw, sh), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
                 self.scaled = [self.scale, simg]
             dc.drawImage(QPointF(self.tx, self.ty), self.scaled[1])
-        for L in self.vector_overlay:
-            if L[0] == 'L':
-                dc.setPen(QPen(QColor(L[1])))
-                pts = []
-                for i in range(2, len(L)-1, 2):
-                    pts.append(QPointF(L[i]*self.scale + self.tx, L[i+1]*self.scale + self.ty))
-                dc.drawPolyline(QPolygonF(pts))
-            elif L[0] == 'P':
-                dc.setBrush(QBrush(QColor(L[1])))
-                dc.setPen(Qt.NoPen)
-                pts = []
-                for i in range(2, len(L)-1, 2):
-                    pts.append(QPointF(L[i]*self.scale + self.tx, L[i+1]*self.scale + self.ty))
-                dc.drawPolygon(QPolygonF(pts))
-            elif L[0] == 'C':
-                dc.setBrush(QBrush())
-                dc.setPen(QPen(QColor(L[1])))
-                r = L[2] * self.scale
-                pts = []
-                for i in range(3, len(L)-1, 2):
-                    dc.drawEllipse(QRectF(L[i]*self.scale + self.tx - r,
-                                          L[i+1]*self.scale + self.ty - r,
-                                          r*2, r*2))
-            elif L[0] == 'x' or L[0] == '+':
-                dc.setPen(QPen(QColor(L[1])))
-                for i in range(2, len(L)-1, 2):
-                    x = L[i]*self.scale + self.tx
-                    y = L[i+1]*self.scale + self.ty
-                    if L[0] == 'x':
-                        dc.drawLine(QPointF(x-10, y-10), QPointF(x+10, y+10))
-                        dc.drawLine(QPointF(x+10, y-10), QPointF(x-10, y+10))
-                    else:
-                        dc.drawLine(QPointF(x-14, y), QPointF(x+14, y))
-                        dc.drawLine(QPointF(x, y-14), QPointF(x, y+14))
-            elif L[0] == 'T':
-                dc.setPen(QPen(QColor(L[1])))
-                x = L[2]*self.scale + self.tx
-                y = L[3]*self.scale + self.ty
-                fh = L[4]*self.scale
-                cc = L[5]
-                txt = L[6]
-                dc.setFont(QFont("sans-serif", int(fh)))
-                r = dc.boundingRect(QRectF(0, 0, 10000, 10000), int(Qt.AlignLeft|Qt.AlignTop), txt)
-                if cc in ("W", "NW", "SW"): x -= r.width()
-                if cc in ("N", "C", "S"):   x -= r.width()/2
-                if cc in ("N", "NW", "NE"): y -= r.height()
-                if cc in ("W", "C", "E"):   y -= r.height()/2
-                dc.drawText(QRectF(x, y, 10000, 10000), int(Qt.AlignLeft|Qt.AlignTop), txt)
+        if self.vectorOverlay:
+            for L in self.vector_overlay:
+                if L[0] == 'L':
+                    dc.setPen(QPen(QColor(L[1])))
+                    pts = []
+                    for i in range(2, len(L)-1, 2):
+                        pts.append(QPointF(L[i]*self.scale + self.tx, L[i+1]*self.scale + self.ty))
+                    dc.drawPolyline(QPolygonF(pts))
+                elif L[0] == 'P':
+                    dc.setBrush(QBrush(QColor(L[1])))
+                    dc.setPen(Qt.NoPen)
+                    pts = []
+                    for i in range(2, len(L)-1, 2):
+                        pts.append(QPointF(L[i]*self.scale + self.tx, L[i+1]*self.scale + self.ty))
+                    dc.drawPolygon(QPolygonF(pts))
+                elif L[0] == 'C':
+                    dc.setBrush(QBrush())
+                    dc.setPen(QPen(QColor(L[1])))
+                    r = L[2] * self.scale
+                    pts = []
+                    for i in range(3, len(L)-1, 2):
+                        dc.drawEllipse(QRectF(L[i]*self.scale + self.tx - r,
+                                              L[i+1]*self.scale + self.ty - r,
+                                              r*2, r*2))
+                elif L[0] == 'x' or L[0] == '+':
+                    dc.setPen(QPen(QColor(L[1])))
+                    for i in range(2, len(L)-1, 2):
+                        x = L[i]*self.scale + self.tx
+                        y = L[i+1]*self.scale + self.ty
+                        if L[0] == 'x':
+                            dc.drawLine(QPointF(x-10, y-10), QPointF(x+10, y+10))
+                            dc.drawLine(QPointF(x+10, y-10), QPointF(x-10, y+10))
+                        else:
+                            dc.drawLine(QPointF(x-14, y), QPointF(x+14, y))
+                            dc.drawLine(QPointF(x, y-14), QPointF(x, y+14))
+                elif L[0] == 'T':
+                    dc.setPen(QPen(QColor(L[1])))
+                    x = L[2]*self.scale + self.tx
+                    y = L[3]*self.scale + self.ty
+                    fh = L[4]*self.scale
+                    cc = L[5]
+                    txt = L[6]
+                    dc.setFont(QFont("sans-serif", int(fh)))
+                    r = dc.boundingRect(QRectF(0, 0, 10000, 10000), int(Qt.AlignLeft|Qt.AlignTop), txt)
+                    if cc in ("W", "NW", "SW"): x -= r.width()
+                    if cc in ("N", "C", "S"):   x -= r.width()/2
+                    if cc in ("N", "NW", "NE"): y -= r.height()
+                    if cc in ("W", "C", "E"):   y -= r.height()/2
+                    dc.drawText(QRectF(x, y, 10000, 10000), int(Qt.AlignLeft|Qt.AlignTop), txt)
         y = 16
         dc.setFont(QFont("sans-serif", 11))
 
