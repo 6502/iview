@@ -81,7 +81,7 @@ class Viewer(QW):
             # Any image may contain a vector overlay package appended at the end.
             # The package ends with "vo" followed by 4 bytes with the offset of
             # where the package starts in the file; at that point the first
-            # two bytes must of the package also be "vo".
+            # two bytes of the package must also be "vo".
             #
             # An example of writing a vector overlay package at the end of a file is
             #
@@ -717,6 +717,7 @@ class EllipseTool(RectTool):
             if x0 < x1 and y0 < y1:
                 self.iview.to32bpp()
                 dc = QPainter(self.iview.img)
+                dc.setRenderHints(QPainter.Antialiasing)
                 dc.setPen(QPen(self.colors[self.color], self.pen))
                 dc.setBrush(QBrush())
                 dc.drawEllipse(x0, y0, x1-x0, y1-y0)
@@ -828,6 +829,7 @@ class ArrowTool(Tool):
             dx, dy = (x1 - x0)//self.k, (y1 - y0)//self.k
             nx, ny = (y1 - y0)//self.k//2, (x0 - x1)//self.k//2
             dc = QPainter(self.iview.img)
+            dc.setRenderHints(QPainter.Antialiasing)
             dc.setPen(QPen(self.colors[self.color], self.pen,
                            Qt.SolidLine, Qt.RoundCap))
             dc.setBrush(QBrush())
