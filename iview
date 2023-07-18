@@ -75,7 +75,10 @@ class Viewer(QW):
         self.load(0)
 
     def load(self, index):
-        img = QImage(self.imglist[index])
+        reader = QImageReader(self.imglist[index])
+        reader.setAutoTransform(True)
+        img = reader.read()
+
         if img.width() > 0:
             self.imgmtime = os.stat(self.imglist[index]).st_mtime
             # Any image may contain a vector overlay package appended at the end.
