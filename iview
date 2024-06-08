@@ -1063,11 +1063,22 @@ if sys.version_info[0]<3:
     # (on Python 3 sys.argv is already a list of unicode strings)
     uargv = [unicode(x) for x in app.arguments()]
 
+def is_wayland():
+    return os.environ.get('XDG_SESSION_TYPE') == 'wayland'
+
+def is_gnome():
+    desktop_session = os.environ.get('DESKTOP_SESSION')
+    current_desktop = os.environ.get('XDG_CURRENT_DESKTOP')
+    return 'gnome' in (desktop_session or '').lower() or 'gnome' in (current_desktop or '').lower()
+
 if len(uargv) in (2, 3) and uargv[1] == "--screenshot":
-    screen = QGuiApplication.primaryScreen()
-    img = screen.grabWindow(0);
     fname = "iview-screenshot.png" if len(uargv) == 2 else uargv[2]
-    img.save(fname)
+    if is_wayland() and is_gnome():
+        subprocess.call(["gnome-screenshot", "-f", fname])
+    else:
+        screen = QGuiApplication.primaryScreen()
+        img = screen.grabWindow(0);
+        img.save(fname)
     uargv[1:] = [fname]
 
 class SortWrapper:
