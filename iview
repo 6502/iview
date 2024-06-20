@@ -1083,14 +1083,21 @@ if len(uargv) in (2, 3) and uargv[1] == "--screenshot":
 
 if len(uargv) in (2, 3) and uargv[1] == "--clipboard":
     fname = "iview-clipboard.png" if len(uargv) == 2 else uargv[2]
-    img = QApplication.clipboard().image()
-    if img.width() > 0:
-        img.save(fname)
-        uargv[1:] = [fname]
+    img = QImage()
+    if 'image/png' in available_formats:
+        img.loadFromData(mime_data.data('image/png'), 'PNG')
+    elif 'image/jpeg' in available_formats:
+        img.loadFromData(mime_data.data('image/jpeg'), 'JPEG')
+    elif 'image/bmp' in available_formats:
+        img.loadFromData(mime_data.data('image/bmp'), 'BMP')
     else:
+        image = clipboard.image()
+    if img.isNull():
         QMessageBox.critical(None, "IView: No image in clipboard",
                              "Unable to use image from clipboard")
         exit(1)
+    img.save(fname)
+    uargv[1:] = [fname]
 
 class SortWrapper:
     def __init__(self, x):
