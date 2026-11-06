@@ -54,6 +54,11 @@ Features
   ppm, psd, psd, ras, ras, rgb, rgb, rgba, rgba, sgi, sgi, svg,
   svgz, tga, tga, tif, tiff, xbm, xcf, xcf, xpm, xv.
 - PGM file writing (strangely unsupported by QImage)
+- Headerless ".raw" files (just w*h 8-bit grayscale pixels). The first
+  time a file size is met the resolution is asked, prefilled with a
+  guess based on common sensor sizes, and the answer is kept in memory
+  for all raw files of the same size until the program is closed. A
+  live reload never asks; "U" does if the new size is unknown.
 - Running with --screenshot [filename] takes a full desktop
   screenshot and opens it
 - Allows visualization of a vector overlay on the image allowing

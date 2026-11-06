@@ -46,6 +46,28 @@ def between(x, a, b, eps=0):
 def near(x, a, eps):
     return a-eps <= x <= a+eps
 
+# Headerless files, holding only w*h 8-bit grayscale pixels. They're used
+# only as a fallback if Qt has no idea about how to read the file.
+RAW_EXTENSIONS = ["raw"]
+
+# Used to prefill the question about the resolution of a raw file
+COMMON_RAW_RESOLUTIONS = [(5472, 3648), (640, 480), (800, 600), (1024, 768),
+                          (1280, 720), (1280, 960), (1280, 1024), (1440, 1080),
+                          (1600, 1200), (1920, 1080), (1920, 1200), (2048, 1536),
+                          (2448, 2048), (2592, 1944), (2592, 2048), (3072, 2048),
+                          (3840, 2160), (4000, 3000), (4096, 2160), (4096, 3000),
+                          (4608, 3456), (5120, 3840), (6000, 4000), (7952, 5304),
+                          (8192, 5460), (512, 512), (1024, 1024), (2048, 2048),
+                          (4096, 4096)]
+
+def guessRawResolution(size):
+    for w, h in COMMON_RAW_RESOLUTIONS:
+        if w*h == size:
+            return w, h
+    # Not a known sensor: use the factorization closest to 4:3
+    return min(((size//h, h) for h in range(1, int(math.sqrt(size))+1) if size % h == 0),
+               key=lambda res: abs(math.log(res[0] / float(res[1]) / (4/3.))))
+
 class Viewer(QW):
     def __init__(self, parent, imglist):
         QW.__init__(self, parent)
@@ -72,13 +94,76 @@ class Viewer(QW):
         self.tracking = None
         self.tools = []
         self.vector_overlay = []
+        self.rawResolutions = {} # file size -> (width, height)
         self.load(0)
 
-    def load(self, index):
+    def askRawResolution(self, fname, size):
+        d = QDialog(self)
+        d.setWindowTitle("Raw image resolution")
+        vb = QVBoxLayout(d)
+        vb.addWidget(QLabel("%s\n%i bytes, 8 bits per pixel" % (os.path.basename(fname), size)))
+        form = QFormLayout(); vb.addLayout(form)
+        guess = guessRawResolution(size)
+        wsle = QLineEdit(str(guess[0]), d); form.addRow("Width", wsle)
+        hsle = QLineEdit(str(guess[1]), d); form.addRow("Height", hsle)
+        hb = QHBoxLayout(); vb.addLayout(hb)
+        hb.addWidget(QWidget(d))
+        ok = QPushButton("OK", d); hb.addWidget(ok)
+        ok.setFixedWidth(80)
+        ok.setDefault(True)
+        cancel = QPushButton("Cancel", d); hb.addWidget(cancel)
+        cancel.setFixedWidth(80)
+        hb.addWidget(QWidget(d))
+        def number(sle):
+            try:
+                return max(0, int(sle.text()))
+            except ValueError:
+                return 0
+        def edited(src, dst):
+            # Only exact factorizations are acceptable, so the other value is implied
+            n = number(src)
+            if n > 0 and size % n == 0:
+                dst.setText(str(size // n))
+            ok.setEnabled(number(wsle) * number(hsle) == size)
+        wsle.textEdited.connect(lambda _: edited(wsle, hsle))
+        hsle.textEdited.connect(lambda _: edited(hsle, wsle))
+        cancel.clicked.connect(d.reject)
+        ok.clicked.connect(d.accept)
+        wsle.selectAll()
+        wsle.setFocus()
+        # The file timestamp check would otherwise reenter load while waiting
+        self.timer.stop()
+        accepted = d.exec_() == QDialog.Accepted
+        self.timer.start(250)
+        return (number(wsle), number(hsle)) if accepted else None
+
+    def loadRaw(self, fname, ask):
+        if not os.path.isfile(fname):
+            return QImage()
+        size = os.stat(fname).st_size
+        if size == 0:
+            return QImage()
+        res = self.rawResolutions.get(size)
+        if res is None and ask:
+            res = self.askRawResolution(fname, size)
+            if res is not None:
+                self.rawResolutions[size] = res
+        if res is None:
+            return QImage()
+        with open(fname, "rb") as f:
+            data = f.read()
+        if len(data) != size: # changed while asking
+            return QImage()
+        w, h = res
+        return QImage(data, w, h, w, QImage.Format_Grayscale8).copy()
+
+    def load(self, index, ask=True):
         index = index % len(self.imglist)
         reader = QImageReader(self.imglist[index])
         reader.setAutoTransform(True)
         img = reader.read()
+        if img.isNull() and self.imglist[index].lower().endswith(tuple("." + x for x in RAW_EXTENSIONS)):
+            img = self.loadRaw(self.imglist[index], ask)
 
         if img.width() > 0:
             self.imgmtime = os.stat(self.imglist[index]).st_mtime
@@ -165,7 +250,9 @@ class Viewer(QW):
         if imgmtime != self.imgmtime:
             ow = self.img.width()
             oh = self.img.height()
-            self.load(0)
+            # No questions here: this runs by itself and a file being written
+            # goes through partial sizes (use "U" to be asked for the final one)
+            self.load(0, False)
             if self.img.width() != ow or self.img.height() != oh:
                 self.zoomAll()
 
@@ -1124,7 +1211,7 @@ if len(filelist) == 1 and filelist[0][:8] == "file:///":
 if len(filelist) == 1:
     slash = filelist[0].rindex("/") if "/" in filelist[0] else -1
     fl = []
-    supported_extensions = [x.data().decode() for x in QImageReader.supportedImageFormats()]
+    supported_extensions = [x.data().decode() for x in QImageReader.supportedImageFormats()] + RAW_EXTENSIONS
     fre = re.compile("^.*\\.(" + "|".join(supported_extensions) + ")$", re.IGNORECASE)
     for f in os.listdir(filelist[0][:slash+1] + "."):
         if fre.match(f):
